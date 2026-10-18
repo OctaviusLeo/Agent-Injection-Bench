@@ -1,0 +1,200 @@
+aib v0.1.0
+├── agentdojo v0.1.35
+│   ├── anthropic v1.15.0
+│   │   ├── anyio v4.15.1
+│   │   │   ├── idna v3.20
+│   │   │   └── typing-extensions v4.16.0
+│   │   ├── docstring-parser v0.18.0
+│   │   ├── httpx2 v2.13.1
+│   │   │   ├── anyio v4.15.1 (*)
+│   │   │   ├── httpcore2 v2.13.1
+│   │   │   │   ├── h11 v0.16.0
+│   │   │   │   └── truststore v0.10.5
+│   │   │   ├── idna v3.20
+│   │   │   ├── truststore v0.10.5
+│   │   │   └── typing-extensions v4.16.0
+│   │   ├── jiter v0.17.0
+│   │   ├── opentelemetry-api v1.45.1
+│   │   │   └── typing-extensions v4.16.0
+│   │   ├── pydantic v2.14.1
+│   │   │   ├── annotated-types v0.8.0
+│   │   │   ├── pydantic-core v2.50.1
+│   │   │   │   └── typing-extensions v4.16.0
+│   │   │   ├── typing-extensions v4.16.0
+│   │   │   └── typing-inspection v0.4.4
+│   │   │       └── typing-extensions v4.16.0
+│   │   ├── sniffio v1.3.1
+│   │   └── typing-extensions v4.16.0
+│   ├── click v8.5.0
+│   ├── cohere v7.2.0
+│   │   ├── fastavro v1.13.1
+│   │   ├── httpx v0.28.1
+│   │   │   ├── anyio v4.15.1 (*)
+│   │   │   ├── certifi v2026.7.22
+│   │   │   ├── httpcore v1.0.9
+│   │   │   │   ├── certifi v2026.7.22
+│   │   │   │   └── h11 v0.16.0
+│   │   │   └── idna v3.20
+│   │   ├── pydantic v2.14.1 (*)
+│   │   ├── pydantic-core v2.50.1 (*)
+│   │   ├── requests v2.34.2
+│   │   │   ├── certifi v2026.7.22
+│   │   │   ├── charset-normalizer v3.5.2
+│   │   │   ├── idna v3.20
+│   │   │   └── urllib3 v2.8.0
+│   │   ├── tokenizers v0.23.3
+│   │   │   └── huggingface-hub v2.2.0
+│   │   │       ├── click v8.5.0
+│   │   │       ├── filelock v4.2.1
+│   │   │       ├── fsspec v2026.9.0
+│   │   │       ├── hf-xet v1.7.0
+│   │   │       ├── httpx2 v2.13.1 (*)
+│   │   │       ├── packaging v26.3
+│   │   │       ├── pyyaml v6.0.3
+│   │   │       ├── tqdm v4.70.1
+│   │   │       └── typing-extensions v4.16.0
+│   │   ├── types-requests v2.33.0.20261006
+│   │   │   └── urllib3 v2.8.0
+│   │   └── typing-extensions v4.16.0
+│   ├── deepdiff v9.1.0
+│   │   ├── cachebox v5.2.3
+│   │   └── orderly-set v5.5.0
+│   ├── docstring-parser v0.18.0
+│   ├── google-genai v2.31.0
+│   │   ├── anyio v4.15.1 (*)
+│   │   ├── distro v1.9.0
+│   │   ├── google-auth[requests] v2.62.0
+│   │   │   ├── cryptography v50.0.2
+│   │   │   │   └── cffi v2.1.1
+│   │   │   │       └── pycparser v3.11
+│   │   │   ├── pyasn1-modules v0.4.2
+│   │   │   │   └── pyasn1 v0.6.4
+│   │   │   └── requests v2.34.2 (extra: requests) (*)
+│   │   ├── httpx v0.28.1 (*)
+│   │   ├── pydantic v2.14.1 (*)
+│   │   ├── requests v2.34.2 (*)
+│   │   ├── sniffio v1.3.1
+│   │   ├── tenacity v9.1.4
+│   │   ├── typing-extensions v4.16.0
+│   │   └── websockets v16.1.1
+│   ├── langchain v1.4.6
+│   │   ├── langchain-core v1.6.12
+│   │   │   ├── httpx v0.28.1 (*)
+│   │   │   ├── jsonpatch v1.35
+│   │   │   │   └── jsonpointer v3.2.1
+│   │   │   ├── langchain-protocol v0.0.19
+│   │   │   │   └── typing-extensions v4.16.0
+│   │   │   ├── langsmith v0.14.11
+│   │   │   │   ├── anyio v4.15.1 (*)
+│   │   │   │   ├── distro v1.9.0
+│   │   │   │   ├── httpx2 v2.13.1 (*)
+│   │   │   │   ├── orjson v3.13.0
+│   │   │   │   ├── packaging v26.3
+│   │   │   │   ├── pydantic v2.14.1 (*)
+│   │   │   │   ├── requests v2.34.2 (*)
+│   │   │   │   ├── requests-toolbelt v1.0.0
+│   │   │   │   │   └── requests v2.34.2 (*)
+│   │   │   │   ├── sniffio v1.3.1
+│   │   │   │   ├── typing-extensions v4.16.0
+│   │   │   │   ├── uuid-utils v0.17.1
+│   │   │   │   ├── websockets v16.1.1
+│   │   │   │   ├── xxhash v4.0.1
+│   │   │   │   └── zstandard v0.25.0
+│   │   │   ├── packaging v26.3
+│   │   │   ├── pydantic v2.14.1 (*)
+│   │   │   ├── pyyaml v6.0.3
+│   │   │   ├── tenacity v9.1.4
+│   │   │   ├── typing-extensions v4.16.0
+│   │   │   └── uuid-utils v0.17.1
+│   │   ├── langgraph v1.2.16
+│   │   │   ├── langchain-core v1.6.12 (*)
+│   │   │   ├── langgraph-checkpoint v4.3.0
+│   │   │   │   ├── langchain-core v1.6.12 (*)
+│   │   │   │   └── ormsgpack v1.13.0
+│   │   │   ├── langgraph-prebuilt v1.1.1
+│   │   │   │   ├── langchain-core v1.6.12 (*)
+│   │   │   │   └── langgraph-checkpoint v4.3.0 (*)
+│   │   │   ├── langgraph-sdk v0.4.8
+│   │   │   │   ├── httpx v0.28.1 (*)
+│   │   │   │   ├── langchain-core v1.6.12 (*)
+│   │   │   │   ├── langchain-protocol v0.0.19 (*)
+│   │   │   │   ├── orjson v3.13.0
+│   │   │   │   └── websockets v16.1.1
+│   │   │   ├── pydantic v2.14.1 (*)
+│   │   │   └── xxhash v4.0.1
+│   │   └── pydantic v2.14.1 (*)
+│   ├── openai v3.35.0
+│   │   ├── anyio v4.15.1 (*)
+│   │   ├── httpx2 v2.13.1 (*)
+│   │   ├── jiter v0.17.0
+│   │   ├── pydantic v2.14.1 (*)
+│   │   ├── sniffio v1.3.1
+│   │   └── typing-extensions v4.16.0
+│   ├── pydantic[email] v2.14.1
+│   │   ├── annotated-types v0.8.0
+│   │   ├── pydantic-core v2.50.1 (*)
+│   │   ├── typing-extensions v4.16.0
+│   │   ├── typing-inspection v0.4.4 (*)
+│   │   └── email-validator v2.3.0 (extra: email)
+│   │       ├── dnspython v2.9.0
+│   │       └── idna v3.20
+│   ├── python-dotenv v1.2.4
+│   ├── pyyaml v6.0.3
+│   ├── rich v15.0.0
+│   │   ├── markdown-it-py v4.2.0
+│   │   │   └── mdurl v0.1.2
+│   │   └── pygments v2.21.0
+│   ├── tenacity v9.1.4
+│   └── typing-extensions v4.16.0
+├── huggingface-hub v2.2.0 (*)
+├── hypothesis v6.170.1
+│   └── sortedcontainers v2.4.0
+├── matplotlib v3.11.2
+│   ├── contourpy v1.4.0
+│   │   └── numpy v2.5.4
+│   ├── cycler v0.12.1
+│   ├── fonttools v4.67.0
+│   ├── kiwisolver v1.5.1
+│   ├── numpy v2.5.4
+│   ├── packaging v26.3
+│   ├── pillow v13.0.0
+│   ├── pyparsing v3.3.3
+│   └── python-dateutil v2.9.0.post0
+│       └── six v1.17.0
+├── numpy v2.5.4
+├── openai v3.35.0 (*)
+├── pydantic v2.14.1 (*)
+├── pytest v9.1.1
+│   ├── iniconfig v2.3.1
+│   ├── packaging v26.3
+│   ├── pluggy v1.7.0
+│   └── pygments v2.21.0
+├── pytest-cov v7.1.0
+│   ├── coverage v7.16.2
+│   ├── pluggy v1.7.0
+│   └── pytest v9.1.1 (*)
+├── pyyaml v6.0.3
+├── torch v2.14.1+cpu
+│   ├── filelock v4.2.1
+│   ├── fsspec v2026.9.0
+│   ├── jinja2 v3.1.6
+│   │   └── markupsafe v3.0.4
+│   ├── networkx v3.7
+│   ├── setuptools v84.0.0
+│   ├── sympy v1.14.0
+│   │   └── mpmath v1.3.0
+│   └── typing-extensions v4.16.0
+└── transformers v5.20.1
+    ├── huggingface-hub v2.2.0 (*)
+    ├── numpy v2.5.4
+    ├── packaging v26.3
+    ├── pyyaml v6.0.3
+    ├── regex v2026.9.29
+    ├── safetensors v0.8.0
+    ├── tokenizers v0.23.3 (*)
+    ├── tqdm v4.70.1
+    └── typer v0.27.3
+        ├── annotated-doc v0.0.5
+        ├── rich v15.0.0 (*)
+        └── shellingham v1.5.4
+(*) Package tree already displayed

@@ -1,0 +1,629 @@
+{
+  "accessed": "2026-10-18",
+  "packages": [
+    {
+      "name": "agentdojo",
+      "version": "0.1.35",
+      "license": "MIT",
+      "source": "Classifier"
+    },
+    {
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "anthropic",
+      "version": "1.15.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "anyio",
+      "version": "4.15.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "cachebox",
+      "version": "5.2.3",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "license": "MPL-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "cffi",
+      "version": "2.1.1",
+      "license": "MIT-0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "click",
+      "version": "8.5.0",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "cohere",
+      "version": "7.2.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6",
+      "license": "BSD-3-Clause",
+      "source": "PyPI JSON API, Classifier (BSD variant not stated; 3-clause assumed) (not installed on Linux: platform marker)"
+    },
+    {
+      "name": "contourpy",
+      "version": "1.4.0",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "coverage",
+      "version": "7.16.2",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "cryptography",
+      "version": "50.0.2",
+      "license": "Apache-2.0 OR BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "cycler",
+      "version": "0.12.1",
+      "license": "BSD-3-Clause",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "deepdiff",
+      "version": "9.1.0",
+      "license": "MIT",
+      "source": "Classifier"
+    },
+    {
+      "name": "distro",
+      "version": "1.9.0",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "dnspython",
+      "version": "2.9.0",
+      "license": "ISC",
+      "source": "License-Expression"
+    },
+    {
+      "name": "docstring-parser",
+      "version": "0.18.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "email-validator",
+      "version": "2.3.0",
+      "license": "Unlicense",
+      "source": "License field"
+    },
+    {
+      "name": "fastavro",
+      "version": "1.13.1",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "filelock",
+      "version": "4.2.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "fonttools",
+      "version": "4.67.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "fsspec",
+      "version": "2026.9.0",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "google-auth",
+      "version": "2.62.0",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "google-genai",
+      "version": "2.31.0",
+      "license": "Apache-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.7.0",
+      "license": "Apache-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "httpcore2",
+      "version": "2.13.1",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1",
+      "license": "BSD-3-Clause",
+      "source": "License field"
+    },
+    {
+      "name": "httpx2",
+      "version": "2.13.1",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "httpx2-jsfetch",
+      "version": "1.0",
+      "license": "BSD-3-Clause",
+      "source": "PyPI JSON API, License-Expression (not installed on Linux: platform marker)"
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "2.2.0",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "hypothesis",
+      "version": "6.170.1",
+      "license": "MPL-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "idna",
+      "version": "3.20",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "jinja2",
+      "version": "3.1.6",
+      "license": "BSD-3-Clause",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "jiter",
+      "version": "0.17.0",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "jsonpatch",
+      "version": "1.35",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "jsonpointer",
+      "version": "3.2.1",
+      "license": "BSD-3-Clause",
+      "source": "License field"
+    },
+    {
+      "name": "kiwisolver",
+      "version": "1.5.1",
+      "license": "BSD-3-Clause",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "langchain",
+      "version": "1.4.6",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "langchain-core",
+      "version": "1.6.12",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "langchain-protocol",
+      "version": "0.0.19",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "langgraph",
+      "version": "1.2.16",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "langgraph-checkpoint",
+      "version": "4.3.0",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "langgraph-prebuilt",
+      "version": "1.1.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "langgraph-sdk",
+      "version": "0.4.8",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "langsmith",
+      "version": "0.14.11",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "license": "MIT",
+      "source": "Classifier"
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.4",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "matplotlib",
+      "version": "3.11.2",
+      "license": "PSF-2.0",
+      "source": "Classifier"
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "license": "MIT",
+      "source": "Classifier"
+    },
+    {
+      "name": "mpmath",
+      "version": "1.3.0",
+      "license": "BSD-3-Clause",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "networkx",
+      "version": "3.7",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.4",
+      "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "openai",
+      "version": "3.35.0",
+      "license": "Apache-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "opentelemetry-api",
+      "version": "1.45.1",
+      "license": "Apache-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "orderly-set",
+      "version": "5.5.0",
+      "license": "MIT",
+      "source": "Classifier"
+    },
+    {
+      "name": "orjson",
+      "version": "3.13.0",
+      "license": "MPL-2.0 AND (Apache-2.0 OR MIT)",
+      "source": "License-Expression"
+    },
+    {
+      "name": "ormsgpack",
+      "version": "1.13.0",
+      "license": "Apache-2.0 OR MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "license": "Apache-2.0 OR BSD-2-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0",
+      "license": "MIT-CMU",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pluggy",
+      "version": "1.7.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "pyasn1",
+      "version": "0.6.4",
+      "license": "BSD-2-Clause",
+      "source": "License field"
+    },
+    {
+      "name": "pyasn1-modules",
+      "version": "0.4.2",
+      "license": "BSD-2-Clause",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "pycparser",
+      "version": "3.11",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.14.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.50.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pygments",
+      "version": "2.21.0",
+      "license": "BSD-2-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.3.3",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pytest",
+      "version": "9.1.1",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "pytest-cov",
+      "version": "7.1.0",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "license": "BSD-3-Clause AND Apache-2.0",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.2.4",
+      "license": "BSD-3-Clause",
+      "source": "License field"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "license": "Apache-2.0 AND CNRI-Python",
+      "source": "License-Expression"
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "requests-toolbelt",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "safetensors",
+      "version": "0.8.0",
+      "license": "Apache-2.0",
+      "source": "Classifier"
+    },
+    {
+      "name": "setuptools",
+      "version": "84.0.0",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "shellingham",
+      "version": "1.5.4",
+      "license": "ISC",
+      "source": "License field"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "license": "MIT",
+      "source": "License field"
+    },
+    {
+      "name": "sniffio",
+      "version": "1.3.1",
+      "license": "MIT OR Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "sortedcontainers",
+      "version": "2.4.0",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "sympy",
+      "version": "1.14.0",
+      "license": "BSD-3-Clause",
+      "source": "Classifier + license file"
+    },
+    {
+      "name": "tenacity",
+      "version": "9.1.4",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "license": "Apache-2.0",
+      "source": "Classifier"
+    },
+    {
+      "name": "torch",
+      "version": "2.14.1+cpu",
+      "license": "Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "license": "MPL-2.0 AND MIT",
+      "source": "License field"
+    },
+    {
+      "name": "transformers",
+      "version": "5.20.1",
+      "license": "Apache-2.0",
+      "source": "License field"
+    },
+    {
+      "name": "truststore",
+      "version": "0.10.5",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "typer",
+      "version": "0.27.3",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "types-requests",
+      "version": "2.33.0.20261006",
+      "license": "Apache-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.16.0",
+      "license": "PSF-2.0",
+      "source": "License-Expression"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "license": "MIT",
+      "source": "License-Expression"
+    },
+    {
+      "name": "uuid-utils",
+      "version": "0.17.1",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "websockets",
+      "version": "16.1.1",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    },
+    {
+      "name": "xxhash",
+      "version": "4.0.1",
+      "license": "BSD-2-Clause",
+      "source": "License field"
+    },
+    {
+      "name": "zstandard",
+      "version": "0.25.0",
+      "license": "BSD-3-Clause",
+      "source": "License-Expression"
+    }
+  ]
+}

@@ -592,8 +592,8 @@ def compute_metrics(store_dir: str, seed: int, resamples: int) -> dict: ...
 
 Filled in by tasks 1.1–1.5; the M0 gate fails while any `TBD` remains.
 
-- AgentDojo license evidence (installed package metadata and bundled LICENSE): TBD
-- InjecAgent license evidence (repository `LICENCE` file, fetched on the target machine): TBD
+- AgentDojo license evidence (installed package metadata and bundled LICENSE): `agentdojo` 0.1.35 carries the classifier `License :: OSI Approved :: MIT License` and bundles the MIT `LICENSE` (copyright 2024 Edoardo Debenedetti et al.); `docs/evidence/agentdojo_license.json` and `agentdojo_LICENSE.txt`, read on the target machine by `scripts/license_evidence.py`.
+- InjecAgent license evidence (repository `LICENCE` file, fetched on the target machine): MIT, copyright 2023 Qiusi Zhan; `docs/evidence/injecagent_license.json` and `injecagent_LICENSE.txt`, fetched from `raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/main/LICENCE` by `scripts/license_evidence.py`.
 - llama.cpp image digest and build: TBD
 - `qwen3-4b`: file SHA-256, slots and per-slot context, smoke-test peak MiB vs total MiB, tool-call probe result: TBD
 - 8B slot model actually used (`llama3.1-8b`, its bundled-template variant, or `qwen2.5-7b`), with the same evidence: TBD

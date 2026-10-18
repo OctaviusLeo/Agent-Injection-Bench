@@ -1,0 +1,14 @@
+{
+  "package": "agentdojo",
+  "version": "0.1.35",
+  "license_classifiers": [
+    "License :: OSI Approved :: MIT License"
+  ],
+  "license_expression": null,
+  "license_file_sha256": "4285a071f2d382338e52b4fb0a186d952984a34d43a33d8872e1a1d8cb43401e",
+  "copyright": [
+    "Copyright (c) 2024 Edoardo Debenedetti, Jie Zhang, Mislav Balunovic, Luca Beurer-Kellner, Marc Fischer, and Florian Tram\u00e8r"
+  ],
+  "is_mit": true,
+  "accessed": "2026-10-18"
+}

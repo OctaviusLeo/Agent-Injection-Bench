@@ -103,7 +103,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
 
 ## M0 — Prior-work evidence, model server, and smoke tests
 
-- [ ] 1.1 Record the prior-work license evidence
+- [x] 1.1 Record the prior-work license evidence
   - Write `scripts/license_evidence.py`: it reads the installed `agentdojo` distribution's metadata (`importlib.metadata`: version, classifiers, and the bundled `LICENSE` file) and fetches InjecAgent's license file from `https://raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/main/LICENCE`, and saves both, with the access date, under `docs/evidence/`.
   - Confirm both are MIT. If either is not, record a blocker: the PriorWork_Decision in design.md depends on it.
   - Record in `THIRD_PARTY.md`: AgentDojo (`agentdojo` 0.1.35, MIT, its copyright line, and the reuse mode design.md describes: pinned package, workspace suite, injection tasks 0–5, pipeline elements, the spotlighting-with-delimiting defense, and the attack templates), InjecAgent (MIT, the "enhanced" attack sentence used through AgentDojo's `injecagent` attack), and every Python package in `uv.lock` with its version and license identifier taken from its installed metadata.
