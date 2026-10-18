@@ -252,3 +252,13 @@ def test_message_conversion_handles_text_with_tool_calls_and_missing_ids():
 def test_invalid_provider_is_rejected():
     with pytest.raises(ValueError):
         L.ChatLLM("t", "http://127.0.0.1:9/v1", "m", None, SAMPLING, 1.0, provider="other")
+
+
+def test_unparseable_model_output_500_is_not_retried():
+    body = {"error": {"code": 500, "message": "The model produced output that does not match the expected peg-native format",
+                      "type": "server_error"}}
+    with FakeOpenAI([(500, body, 0)]) as srv:
+        with pytest.raises(L.LLMResponseError) as info:
+            _llm(srv).query("q", _runtime(), messages=[_user("q")], extra_args={})
+        assert len(srv.requests) == 1  # deterministic model output: retrying the same request cannot help
+    assert info.value.kind == "bad_response" and "could not be parsed" in str(info.value)

@@ -27,6 +27,9 @@ LOCAL_API_KEY = "sk-no-key-required"
 HOSTED_SAMPLING_PARAMS = ("temperature", "top_p", "seed")
 _CONTEXT_PATTERNS = re.compile(r"context (size|length|window)|exceed_context|context_length_exceeded|too many tokens", re.I)
 _UNSUPPORTED = re.compile(r"unsupported (parameter|value)|not supported|does not support", re.I)
+# llama-server answers 500 when the model's own output cannot be parsed as a tool call (for example two calls in a
+# format with no separator for them). That is the model's output, not a server fault: no retry, the case errors.
+_UNPARSEABLE_OUTPUT = re.compile(r"does not match the expected|failed to parse|unparsed .*output", re.I)
 
 
 class MissingSecretError(RuntimeError):
@@ -258,6 +261,9 @@ class ChatLLM(BasePipelineElement):
                 err = LLMConnectionError(f"connection failed: {exc}", messages_in, extra_args)
             except openai.APIStatusError as exc:
                 text, param = _error_text(exc)
+                if exc.status_code >= 500 and _UNPARSEABLE_OUTPUT.search(text):
+                    raise LLMResponseError(f"HTTP {exc.status_code}: model output could not be parsed: {text}",
+                                           messages_in, extra_args) from exc
                 if exc.status_code == 429 or exc.status_code >= 500:
                     err = LLMServerError(f"HTTP {exc.status_code}: {text}", messages_in, extra_args)
                 elif exc.status_code == 400 and _CONTEXT_PATTERNS.search(text):
