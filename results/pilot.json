@@ -2,7 +2,7 @@
   "stamp": {
     "command": "python -m aib.pilot --model qwen3-4b",
     "seed": 20261017,
-    "commit": "7302f233fed9c58dd2e939549007e19005b1340f"
+    "commit": "7d5a10621cb8236eac8c14383d9f030da0e77e34"
   },
   "pilot_model": "qwen3-4b",
   "n_cases": 48,
@@ -17,7 +17,7 @@
   "total_case_seconds": 240.6,
   "decode_rates_tokens_per_s": {
     "qwen3-4b": 113.61,
-    "llama3.1-8b": 94.12
+    "qwen2.5-7b": 102.54
   },
   "projection_method": "mean seconds per pilot case x decode-rate scale x grid cases / workers",
   "projections": {
@@ -27,11 +27,11 @@
       "decode_rate_scale": 1.0,
       "projected_hours": 2.0
     },
-    "llama3.1-8b": {
+    "qwen2.5-7b": {
       "grid_cases": 2880,
       "workers": 1,
-      "decode_rate_scale": 1.2071,
-      "projected_hours": 4.84
+      "decode_rate_scale": 1.108,
+      "projected_hours": 4.44
     }
   },
   "cases": [
