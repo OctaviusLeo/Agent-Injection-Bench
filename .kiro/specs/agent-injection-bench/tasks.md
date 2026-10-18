@@ -110,7 +110,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Record in `docs/ENVIRONMENT.md`, with artifacts: Python's version, uv's version, and the `uv tree` output saved under `docs/evidence/`. Fill the AgentDojo and InjecAgent lines of design.md's "M0 outcome" block.
   - _Requirements: 1.1, 1.2, 1.3, 0.5, 0.6, 0.7, 0.8_
 
-- [ ] 1.2 Implement the model element and the spend ledger
+- [x] 1.2 Implement the model element and the spend ledger
   - Write `aib/llm.py` (`ChatLLM`, an AgentDojo `BasePipelineElement`) and `aib/ledger.py` (`SpendLedger`) exactly as design.md's "Model element, spend ledger, and Stub_Model" describes: message conversion with the `system` role, tool schemas, sampling settings and per-request seed, local and hosted parameter sets, malformed-argument handling, retries, `CallRecord`s in `extra_args`, the missing-secret check, the conservative cost formula, and the precheck that refuses a request that could push spend past `spend_cap_usd`.
   - Unit tests against a fake OpenAI-compatible server started in the test on `127.0.0.1`:
     - a two-turn tool conversation converts both ways, including tool-call ids, tool errors, and multiple tool calls in one message;
