@@ -278,7 +278,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
     - the same configuration and seed reproduce the same case ids, seeds, and recorded configuration exactly.
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 0.2_
 
-- [ ] 4.5 Run the pilot
+- [x] 4.5 Run the pilot
   - Commit, then run `bash scripts/bg.sh pilot bash scripts/run_benchmark.sh qwen3-4b --pilot` and wait for it with `bg_wait.sh`.
   - Write a stamped `results/pilot.json` with:
     - per-case durations, statuses, error causes, token counts, exposure, and context overflows;
