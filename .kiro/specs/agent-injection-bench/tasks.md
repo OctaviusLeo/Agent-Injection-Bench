@@ -172,7 +172,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
     - `validate_catalog` reports a task whose check is removed (monkeypatched) and the total count.
   - _Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 0.14_
 
-- [ ] 2.2 Write property tests for the Sandbox and the checks
+- [x] 2.2 Write property tests for the Sandbox and the checks
   - **Property 1: Sandbox never performs real network I/O**, **Property 2: Sandbox initialization is deterministic under a seed**, and **Property 3: Success checks are deterministic boolean predicates with a reason on failure** — one Hypothesis test each, as design.md specifies.
   - **Validates: Requirements 0.14, 2.1, 2.2, 2.4, 2.5, 2.6, 3.3, 3.4**
 
