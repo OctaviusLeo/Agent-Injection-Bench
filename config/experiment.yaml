@@ -1,0 +1,28 @@
+# Experiment grid (design.md "Data Models"). Never changed after the first benchmark run starts.
+base_seed: 20261017
+repetitions: 3
+suite: workspace
+benchmark_version: [1, 2, 2]
+register_v1_1_2: true          # AgentDojo 0.1.35's load_suites never registers the v1.1.2 task fixes
+user_tasks: [user_task_0, user_task_1, user_task_2, user_task_3, user_task_4, user_task_5, user_task_6, user_task_7,
+             user_task_8, user_task_9, user_task_10, user_task_11, user_task_12, user_task_13, user_task_14, user_task_15,
+             user_task_16, user_task_17, user_task_18, user_task_19, user_task_20, user_task_21, user_task_22, user_task_23,
+             user_task_24, user_task_25, user_task_26, user_task_27, user_task_28, user_task_29, user_task_30, user_task_31,
+             user_task_32, user_task_33, user_task_34, user_task_35, user_task_36, user_task_37, user_task_38, user_task_39]
+# Injected_Goals: AgentDojo workspace injection tasks 0-5; user_task_k is paired with injection_task_(k mod 6).
+goals: [injection_task_0, injection_task_1, injection_task_2, injection_task_3, injection_task_4, injection_task_5]
+goal_assignment: mod6
+# Conditions: the clean control plus the five Injection_Styles.
+conditions: [clean, direct, fake_system, ignore_previous, important_instructions, hidden_field]
+defenses: [none, delimit, hierarchy, filter]
+max_iters: 15                  # AgentDojo ToolsExecutionLoop default
+max_tokens: 1024               # per-call output cap
+sampling:
+  temperature: 0.7
+  top_p: 0.9
+  local_extra: {top_k: 0, min_p: 0.0}   # sent in extra_body to llama-server only
+local_order: [defense, condition, task, rep]
+hosted_order: [rep, defense, condition, task]
+pilot:
+  user_tasks: [user_task_0, user_task_1]
+  repetitions: 1

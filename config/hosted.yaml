@@ -1,0 +1,16 @@
+# Hosted model run (design.md "Hosted model and Spend_Cap", "Hosted grid").
+model: gpt-6-luna
+spend_cap_usd: 3.00            # set by the owner in design.md; enforced as a total over every hosted request
+prices_per_million_usd:        # OpenAI model page, read 2026-10-17
+  input: 0.10
+  cached_input: 0.01
+  cache_write: 0.125           # every uncached prompt token is charged at this rate, so recorded spend is an upper bound
+  output: 0.50
+worst_case_chars_per_token: 3  # precheck: prompt characters / 3 as uncached tokens, plus max_completion_tokens
+reasoning_effort: none         # Chat Completions supports function calling only with reasoning_effort none
+max_completion_tokens: 1024
+conditions: [clean, direct, important_instructions]
+defenses: [none, delimit, hierarchy, filter]
+workers: 2
+ledger: results/hosted_ledger.jsonl
+accepted_params: null          # written by task 1.5 from the hosted check

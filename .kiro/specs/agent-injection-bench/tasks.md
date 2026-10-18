@@ -95,7 +95,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests: the hash is 40 hex characters; `require_clean()` in a throwaway repository in a temporary directory accepts a change under `results/` and refuses one under `aib/`, listing the path; a stamp round-trips through JSON.
   - _Requirements: 0.1, 0.2_
 
-- [ ] 0.3 Write the configuration files and their loader
+- [x] 0.3 Write the configuration files and their loader
   - Write `config/experiment.yaml`, `config/models.yaml`, `config/hosted.yaml`, and `config/defenses.yaml` with exactly the values in design.md ("Data Models", "Models", "Defense_Conditions", "Injection_Styles", and "Injected_Goals"), including `spend_cap_usd: 3.00` copied from design.md's Spend_Cap, the fallback model `qwen2.5-7b` (disabled until task 1.4 enables it), and the hosted conditions.
   - Write `aib/config.py` with pydantic models that validate every value on load.
   - Unit tests: each file loads; an unknown defense, style, or model key, fewer than 3 Repetitions, a negative Spend_Cap, or a threshold outside [0, 1] is rejected with an error naming the field.

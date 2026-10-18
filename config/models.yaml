@@ -1,0 +1,83 @@
+# Models under test (design.md "Models"). Revisions and sizes from the Hugging Face API, read 2026-10-17;
+# sha256 is the LFS object id of the pinned revision and is checked after download.
+server:
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580
+  compose_project: aib
+  service: llm
+  host_port: 8091
+  base_url: http://127.0.0.1:8091
+  flags: [--jinja, --n-gpu-layers, "99", --flash-attn, "on", --cache-type-k, q8_0, --cache-type-v, q8_0]
+  min_ctx_per_slot: 32768
+  health_timeout_s: 900
+models:
+  qwen3-4b:
+    provider: llamacpp
+    enabled: true
+    name: Qwen3-4B-Instruct-2507
+    repo: unsloth/Qwen3-4B-Instruct-2507-GGUF
+    revision: a06e946bb6b655725eafa393f4a9745d460374c9
+    files:
+      - {name: Qwen3-4B-Instruct-2507-Q4_K_M.gguf, size: 2497281120, sha256: 3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597}
+    quantization: Q4_K_M
+    base_model: Qwen/Qwen3-4B-Instruct-2507
+    license: apache-2.0
+    ctx_size: 65536
+    parallel: 2
+    workers: 2
+    chat_template_file: null
+    timeout_s: 600
+  llama3.1-8b:
+    provider: llamacpp
+    enabled: true
+    name: Llama-3.1-8B-Instruct
+    repo: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF
+    revision: bf5b95e96dac0462e2a09145ec66cae9a3f12067
+    files:
+      - {name: Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf, size: 4920739232, sha256: 7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c}
+    quantization: Q4_K_M
+    base_model: meta-llama/Llama-3.1-8B-Instruct
+    license: llama3.1
+    ctx_size: 32768
+    parallel: 1
+    workers: 1
+    chat_template_file: null
+    timeout_s: 600
+  qwen2.5-7b:                  # fallback for the 8B slot; enabled by task 1.4 only if llama3.1-8b fails the probe
+    provider: llamacpp
+    enabled: false
+    name: Qwen2.5-7B-Instruct
+    repo: Qwen/Qwen2.5-7B-Instruct-GGUF
+    revision: bb5d59e06d9551d752d08b292a50eb208b07ab1f
+    files:
+      - {name: qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf, size: 3993201344, sha256: dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db}
+      - {name: qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf, size: 689872288, sha256: 539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a}
+    quantization: Q4_K_M
+    base_model: Qwen/Qwen2.5-7B-Instruct
+    license: apache-2.0
+    ctx_size: 32768
+    parallel: 1
+    workers: 1
+    chat_template_file: null
+    timeout_s: 600
+  gpt-6-luna:
+    provider: openai
+    enabled: true
+    name: gpt-6-luna
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    license: OpenAI terms of use
+    workers: 2
+    timeout_s: 120
+classifier:
+  repo: protectai/deberta-v3-base-prompt-injection-v2
+  revision: 90c9989b1a342275dd0d1a95aad283c04e075671
+  license: apache-2.0
+  base_model: microsoft/deberta-v3-base
+  files:
+    - {name: config.json, size: 994}
+    - {name: model.safetensors, size: 737719272, sha256: 6521cb8d0ac08148c81464899c424e6148fcc62befa371089fa4061d8b6e0424}
+    - {name: tokenizer.json, size: 8656744}
+    - {name: tokenizer_config.json, size: 1284}
+    - {name: special_tokens_map.json, size: 286}
+    - {name: added_tokens.json, size: 23}
+    - {name: spm.model, size: 2464616, sha256: c679fbf93643d19aab7ee10c0b99e460bdbc02fedf34b92b05af343b4af586fd}
