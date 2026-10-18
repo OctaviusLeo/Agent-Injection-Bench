@@ -130,6 +130,13 @@ def test_compute_metrics_covers_cells_costs_pooled_and_filter(tmp_path):
     assert cost["reference"] == "none" and cost["asr_reduction"] is None
     assert cost["defense_cost"]["point"] == pytest.approx(cost["tsr_none"]["point"] - cost["tsr_defense"]["point"])
     assert any(c["condition"] == "pooled" for c in m["defense_cost"])
+    cells = {(c["defense"], c["condition"]): c for c in m["cells"]}
+    pooled = {p["defense"]: p for p in m["pooled"]}
+    for c in m["defense_cost"]:  # the comparison rows reuse the table's TSR intervals exactly
+        ref = pooled if c["condition"] == "pooled" else None
+        none_tsr = ref["none"]["tsr"] if ref else cells[("none", c["condition"])]["tsr"]
+        def_tsr = ref[c["defense"]]["tsr"] if ref else cells[(c["defense"], c["condition"])]["tsr"]
+        assert c["tsr_none"] == none_tsr and c["tsr_defense"] == def_tsr
     filt = {f["condition"]: f for f in m["filter"]}
     assert set(filt) == {"clean", "direct", "hidden_field", "pooled"} and "precision" in filt["direct"]
     assert m["settings"]["resamples"] == 500

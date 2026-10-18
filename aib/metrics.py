@@ -300,8 +300,9 @@ def compute_metrics(store_dir: str | Path, seed: int, resamples: int = 2000) -> 
                     reduction = paired_bootstrap_difference(asr_counts(base), asr_counts(other),
                                                             cell_seed(seed, key + "|asr"), resamples)
                 costs.append({"model": model, "defense": d, "condition": c, "reference": "none",
-                              "tsr_none": as_dict(task_success_rate(base, cell_seed(seed, key + "|tn"), resamples)),
-                              "tsr_defense": as_dict(task_success_rate(other, cell_seed(seed, key + "|td"), resamples)),
+                              # the same seeds as the Cell (or pooled) rows, so these intervals equal those in the table
+                              "tsr_none": as_dict(task_success_rate(base, cell_seed(seed, f"{model}|none|{c}|tsr"), resamples)),
+                              "tsr_defense": as_dict(task_success_rate(other, cell_seed(seed, f"{model}|{d}|{c}|tsr"), resamples)),
                               "defense_cost": as_dict(cost), "asr_reduction": as_dict(reduction)})
         for c in [*conditions, "pooled"]:
             rs = [r for cc in (styles if c == "pooled" else [c]) for r in by_cell.get(("filter", cc), [])]
