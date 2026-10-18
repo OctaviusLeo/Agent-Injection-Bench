@@ -93,3 +93,7 @@ GitHub Actions runs the first two on every push and on pull requests to `main`.
 - **Results are aggregate only.** The Report and this README give attack success rates and defense effects; the injection texts are generic published templates, none tuned against a named commercial product.
 - **Responsible disclosure.** If benchmarking reveals a reproducible vulnerability in a specific real third-party product, publication of that payload stops and the vendor's responsible-disclosure process is followed (`design.md`, "Responsible disclosure and payload restraint").
 - Third-party code, models, and their licenses are listed in `THIRD_PARTY.md`.
+
+## How this was built
+
+This project was built with Claude Code (Anthropic's agentic coding tool) as a pair programmer, under a spec-driven workflow: written requirements, then a design, then a task list with milestone gates, each gate reviewed before the next milestone started. The commit history shows this openly; commits carry a `Co-Authored-By` trailer naming the model that helped write them. Every reported number comes from a script in this repository and records the command, seed and commit that produced it, so nothing was typed, estimated or borrowed. I own the design decisions, the verification and the results, and I can explain and change any part of this code.
