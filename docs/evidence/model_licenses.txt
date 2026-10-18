@@ -1,0 +1,6 @@
+# Model and server licenses, read 2026-10-18T02:50:35Z from the Hugging Face API (/api/models/<repo>/revision/<rev>) and the GitHub API (/repos/ggml-org/llama.cpp)
+unsloth/Qwen3-4B-Instruct-2507-GGUF revision=a06e946bb6b655725eafa393f4a9745d460374c9 license=apache-2.0 gated=False base_model=['Qwen/Qwen3-4B-Instruct-2507']
+bartowski/Meta-Llama-3.1-8B-Instruct-GGUF revision=bf5b95e96dac0462e2a09145ec66cae9a3f12067 license=llama3.1 gated=False base_model=meta-llama/Meta-Llama-3.1-8B-Instruct
+Qwen/Qwen2.5-7B-Instruct-GGUF revision=bb5d59e06d9551d752d08b292a50eb208b07ab1f license=apache-2.0 gated=False base_model=Qwen/Qwen2.5-7B-Instruct
+protectai/deberta-v3-base-prompt-injection-v2 revision=90c9989b1a342275dd0d1a95aad283c04e075671 license=apache-2.0 gated=False base_model=microsoft/deberta-v3-base
+ggml-org/llama.cpp license=MIT
