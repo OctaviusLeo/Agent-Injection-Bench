@@ -372,7 +372,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests run it in-process.
   - _Requirements: 8.3, 8.5, 8.6_
 
-- [ ] 6.4 Configure the GitHub Actions CI pipeline
+- [x] 6.4 Configure the GitHub Actions CI pipeline
   - Write `.github/workflows/ci.yml`. It runs on every push and on pull requests targeting `main`, on `ubuntu-latest`, with `actions/checkout` and `astral-sh/setup-uv` pinned to their current release tags (recorded in `docs/ENVIRONMENT.md`). Its steps are `uv sync --frozen`, `bash scripts/test_unit.sh`, and `uv run --frozen python scripts/ci_smoke.py`, and the job fails if any step fails.
   - Commit and push, then wait for the run on HEAD to finish (`gh run watch` or `gh run list --branch main`). It must succeed; fix and push until it does, within the retry cap.
   - _Requirements: 8.1, 8.2, 8.4, 8.5_
