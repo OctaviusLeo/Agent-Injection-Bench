@@ -1,4 +1,4 @@
-# Private portfolio repository: not published anywhere, so no license field or classifiers.
+# Licensed under MIT (see LICENSE); not published to any index.
 [project]
 name = "aib"
 version = "0.1.0"
