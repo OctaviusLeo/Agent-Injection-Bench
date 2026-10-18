@@ -319,7 +319,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests: `wilson_interval(27, 30)` is [0.744, 0.965] and `wilson_interval(15, 30)` is [0.332, 0.668] within 1e-3; a store where one task is all successes and another all failures gives a cluster interval wider than the Wilson interval on the same counts; precision and recall on a labeled fixture; an empty Cell is `not computed`.
   - **Validates: Requirements 0.3, 3.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8**
 
-- [ ] 5.3 Implement the Results_Table and the plots
+- [x] 5.3 Implement the Results_Table and the plots
   - Rewrite `aib/results_table.py` and `aib/plots.py` to design.md's "Generated outputs":
     - `results/summary.md` from `results/metrics.json`, with a stamp;
     - `results/plots/asr_by_defense.png`: pooled ASR per Model and defense with interval bars;
