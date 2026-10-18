@@ -222,7 +222,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
     - every record carries the Model, defense, condition, task, Repetition, seed, sampling, and stamp.
   - _Requirements: 3.6, 5.3, 5.5, 5.6, 8.6_
 
-- [ ] 3.5 Generate the stub validation evidence
+- [x] 3.5 Generate the stub validation evidence
   - Write `scripts/stub_validation.py`, which runs all 40 tasks × 5 styles × 2 policies under the `none` defense and writes a stamped `results/m2_stub_validation.json` with per-style counts by policy, status, task success, and injection success.
   - Commit first, then run it.
   - _Requirements: 3.2, 3.4, 3.6, 0.1_
