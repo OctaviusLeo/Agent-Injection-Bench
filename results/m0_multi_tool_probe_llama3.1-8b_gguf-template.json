@@ -1,0 +1,41 @@
+{
+  "stamp": {
+    "command": "python -m aib.multi_tool_probe --model llama3.1-8b --variant gguf-template --seeds 8",
+    "seed": 0,
+    "commit": "51ea5e3fe1751f648e713d1f35faa30e4cb56489"
+  },
+  "model": "llama3.1-8b",
+  "variant": "gguf-template",
+  "server": {
+    "build_info": "b11580-4413a1924",
+    "total_slots": 1,
+    "n_ctx_per_slot": 32768,
+    "model_path": "/models/llama3.1-8b/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
+  },
+  "prompts": [
+    "Do I have any unread emails, and what day is it today? Use the tools for both.",
+    "Create a 1-hour calendar event 'Lunch' with sarah.baker@gmail.com on 2024-05-19 at 12:00, and also check today's date.",
+    "Search my emails from lily.white@gmail.com and also search my calendar for 'Introductory meeting'."
+  ],
+  "seeds": 8,
+  "sampling": {
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "top_k": 0,
+    "min_p": 0.0
+  },
+  "per_parallel_tool_calls_setting": {
+    "unset": {
+      "http_500": 24
+    },
+    "false": {
+      "http_500": 24
+    },
+    "true": {
+      "http_500": 24
+    }
+  },
+  "requests": 72,
+  "parsed": 0,
+  "parse_rate": 0.0
+}

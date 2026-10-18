@@ -57,4 +57,4 @@ def test_main_writes_readme(tmp_path, monkeypatch, capsys):
 
 def test_config_local_models_cli(capsys):
     assert CFG.main(["local-models"]) == 0
-    assert capsys.readouterr().out.split() == ["qwen3-4b", "llama3.1-8b"]
+    assert capsys.readouterr().out.split() == ["qwen3-4b", "qwen2.5-7b"]

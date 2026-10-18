@@ -26,9 +26,9 @@ models:
     workers: 2
     chat_template_file: null
     timeout_s: 600
-  llama3.1-8b:
+  llama3.1-8b:                 # replaced by qwen2.5-7b: llama.cpp cannot parse its multi-call turns (design.md "M0 outcome")
     provider: llamacpp
-    enabled: true
+    enabled: false
     name: Llama-3.1-8B-Instruct
     repo: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF
     revision: bf5b95e96dac0462e2a09145ec66cae9a3f12067
@@ -42,9 +42,9 @@ models:
     workers: 1
     chat_template_file: null
     timeout_s: 600
-  qwen2.5-7b:                  # fallback for the 8B slot; enabled by task 1.4 only if llama3.1-8b fails the probe
+  qwen2.5-7b:                  # the 8B-slot model in use (design.md fallback order; results/m0_multi_tool_probe_*.json)
     provider: llamacpp
-    enabled: false
+    enabled: true
     name: Qwen2.5-7B-Instruct
     repo: Qwen/Qwen2.5-7B-Instruct-GGUF
     revision: bb5d59e06d9551d752d08b292a50eb208b07ab1f

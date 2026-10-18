@@ -29,8 +29,8 @@ def test_repository_files_load_and_agree():
     assert len(cfg.experiment.user_tasks) == 40
     assert cfg.experiment.styles == ["direct", "fake_system", "ignore_previous", "important_instructions", "hidden_field"]
     assert cfg.hosted.spend_cap_usd == 3.00
-    assert cfg.models.local_models() == ["qwen3-4b", "llama3.1-8b"]
-    assert cfg.models.models["qwen2.5-7b"].enabled is False
+    assert cfg.models.local_models() == ["qwen3-4b", "qwen2.5-7b"]  # qwen2.5-7b replaced llama3.1-8b (design.md M0 outcome)
+    assert cfg.models.models["llama3.1-8b"].enabled is False
     assert cfg.models.models["qwen3-4b"].ctx_per_slot == 32768
     assert cfg.defenses.threshold == 0.5
     assert cfg.models.models["gpt-6-luna"].ctx_per_slot is None

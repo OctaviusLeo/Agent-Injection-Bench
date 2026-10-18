@@ -38,12 +38,11 @@ def _tree(tmp_path):
 
 
 def _m0_files(root):
-    files = {"qwen3-4b": CFG.models.models["qwen3-4b"].files, "llama3.1-8b": CFG.models.models["llama3.1-8b"].files,
-             "classifier": CFG.models.classifier.files}
+    files = {k: CFG.models.models[k].files for k in CFG.models.local_models()} | {"classifier": CFG.models.classifier.files}
     entries = {k: {"files": [{"name": f.name, "size": f.size, "size_ok": True, "sha256": "a" * 64} for f in fs]}
                for k, fs in files.items()}
     _write(root, "results/m0_models.json", {"stamp": GOOD_STAMP, "entries": entries})
-    for key in ("qwen3-4b", "llama3.1-8b"):
+    for key in CFG.models.local_models():
         _write(root, f"results/m0_smoke_{key}.json", {"stamp": GOOD_STAMP, "python_ok": True, "docker_ok": True,
                                                        "response": "ok", "peak_mib": 9000, "total_mib": 10240})
         _write(root, f"results/m0_tool_probe_{key}.json", {"passed": True, "tool_calls": [{"function": "get_current_day"}]})
@@ -56,8 +55,7 @@ def _m0_files(root):
     (root / "tests" / "test_llm.py").write_text("")
     rows = ["| AgentDojo | 0.1.35 | MIT |", "| InjecAgent | main | MIT |", "| llama.cpp | b11580 | MIT |",
             f"| {CFG.models.classifier.repo} | r | Apache-2.0 |",
-            f"| {CFG.models.models['qwen3-4b'].repo} | r | Apache-2.0 |",
-            f"| {CFG.models.models['llama3.1-8b'].repo} | r | llama3.1 |"]
+            *[f"| {CFG.models.models[k].repo} | r | Apache-2.0 |" for k in CFG.models.local_models()]]
     (root / "THIRD_PARTY.md").write_text("\n".join(rows) + "\n")
 
 
@@ -67,7 +65,7 @@ def test_m0_passes_and_reports_problems(tmp_path):
     assert G.check_m0(root) == []
     (root / "docs" / "ENVIRONMENT.md").write_text("TBD `docs/evidence/missing.txt`\n")
     (root / "results" / "m0_smoke_qwen3-4b.json").unlink()
-    _write(root, "results/m0_tool_probe_llama3.1-8b.json", {"passed": False, "tool_calls": []})
+    _write(root, f"results/m0_tool_probe_{CFG.models.local_models()[1]}.json", {"passed": False, "tool_calls": []})
     (root / "THIRD_PARTY.md").write_text("| AgentDojo | x | MIT |\n")
     (root / "docker" / "compose.yaml").write_text("image: x:y\n")
     (root / ".gitignore").write_text("runs/\n")
@@ -77,7 +75,7 @@ def test_m0_passes_and_reports_problems(tmp_path):
     (root / "results" / "hosted_ledger.jsonl").write_text(json.dumps({"cost_usd": 3.5}) + "\n")
     (root / ".kiro/specs/agent-injection-bench/design.md").write_text("## M0 outcome\n\n- a: TBD\n\n## X\n")
     text = "\n".join(G.check_m0(root))
-    for needle in ("TBD", "missing path", "m0_smoke_qwen3-4b.json is missing", "m0_tool_probe_llama3.1-8b", "InjecAgent",
+    for needle in ("TBD", "missing path", "m0_smoke_qwen3-4b.json is missing", f"m0_tool_probe_{CFG.models.local_models()[1]}", "InjecAgent",
                    "digest", ".gitignore lacks", ".gitattributes", "m0_models: missing stamp", "empty tool-free",
                    "no tool call", "M0 outcome", "exceeds the Spend_Cap"):
         assert needle in text, needle
@@ -111,7 +109,7 @@ def _store_file(root, model, records):
 
 def test_m3_store_checks(tmp_path):
     root = _tree(tmp_path)
-    for key in ("qwen3-4b", "llama3.1-8b"):
+    for key in CFG.models.local_models():
         _store_file(root, key, _records(key, build_grid(key, CFG.experiment)))
     _write(root, "results/m3_filter_calibration.json", {"stamp": GOOD_STAMP})
     _write(root, "results/pilot.json", {"stamp": GOOD_STAMP})

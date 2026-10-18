@@ -178,7 +178,7 @@ def test_run_cli_local_and_hosted_with_stubs(tmp_path, monkeypatch, capsys):
     assert E.run_cli("gpt-6-luna", pilot=False, workers=1, root=root) == 0
     summary = json.loads((root / "results" / "hosted_run.json").read_text())
     assert summary["completed_cases"] == 3 and summary["stopped_at_cap"] is False and summary["spend_cap_usd"] == 3.0
-    assert E.run_cli("qwen2.5-7b", pilot=False, workers=1, root=root) == 2  # the disabled fallback model
+    assert E.run_cli("llama3.1-8b", pilot=False, workers=1, root=root) == 2  # disabled: replaced by qwen2.5-7b
     assert "starting 3 cases" in capsys.readouterr().out
 
 

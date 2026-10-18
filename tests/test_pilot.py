@@ -40,7 +40,10 @@ def test_main_writes_stamped_pilot_json(tmp_path, monkeypatch, capsys):
     (root / "results" / "pilot").mkdir(parents=True)
     store = [json.dumps({"header": True, "stamp": {}, "config": {}})] + [json.dumps(_rec(i)) for i in range(4)]
     (root / "results" / "pilot" / "qwen3-4b.jsonl").write_text("\n".join(store) + "\n")
-    for k, rate in (("qwen3-4b", 110.0), ("llama3.1-8b", 90.0)):
+    from aib.config import load_models
+
+    local = load_models().local_models()
+    for k, rate in zip(local, (110.0, 90.0)):
         (root / "results" / f"m0_smoke_{k}.json").write_text(json.dumps({"predicted_per_second": rate}))
     for cmd in (["init", "-q", "-b", "main"], ["config", "user.email", "t@e.com"], ["config", "user.name", "T"],
                 ["add", "-A"], ["commit", "-q", "-m", "init"]):
@@ -51,5 +54,5 @@ def test_main_writes_stamped_pilot_json(tmp_path, monkeypatch, capsys):
     assert P.main([]) == 0
     saved = json.loads((root / "results" / "pilot.json").read_text())
     assert len(saved["stamp"]["commit"]) == 40 and saved["n_cases"] == 4
-    assert saved["projections"]["llama3.1-8b"]["workers"] == 1
+    assert saved["projections"][local[1]]["workers"] == 1
     assert '"pilot_model": "qwen3-4b"' in capsys.readouterr().out

@@ -1,0 +1,41 @@
+{
+  "stamp": {
+    "command": "python -m aib.multi_tool_probe --model qwen2.5-7b --variant gguf-template --seeds 8",
+    "seed": 0,
+    "commit": "51ea5e3fe1751f648e713d1f35faa30e4cb56489"
+  },
+  "model": "qwen2.5-7b",
+  "variant": "gguf-template",
+  "server": {
+    "build_info": "b11580-4413a1924",
+    "total_slots": 1,
+    "n_ctx_per_slot": 32768,
+    "model_path": "/models/qwen2.5-7b/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf"
+  },
+  "prompts": [
+    "Do I have any unread emails, and what day is it today? Use the tools for both.",
+    "Create a 1-hour calendar event 'Lunch' with sarah.baker@gmail.com on 2024-05-19 at 12:00, and also check today's date.",
+    "Search my emails from lily.white@gmail.com and also search my calendar for 'Introductory meeting'."
+  ],
+  "seeds": 8,
+  "sampling": {
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "top_k": 0,
+    "min_p": 0.0
+  },
+  "per_parallel_tool_calls_setting": {
+    "unset": {
+      "parsed_2_calls": 24
+    },
+    "false": {
+      "parsed_2_calls": 24
+    },
+    "true": {
+      "parsed_2_calls": 24
+    }
+  },
+  "requests": 72,
+  "parsed": 72,
+  "parse_rate": 1.0
+}
