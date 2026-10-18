@@ -3,7 +3,7 @@
   "stamp": {
     "command": "python scripts/smoke_test.py --model qwen3-4b",
     "seed": 0,
-    "commit": "401067ea974dd0fb82772d0e6f6ae72c36359126"
+    "commit": "8ef04ba7dbafdf3a270008830ebd3413b72b59db"
   },
   "repo": "unsloth/Qwen3-4B-Instruct-2507-GGUF",
   "revision": "a06e946bb6b655725eafa393f4a9745d460374c9",
@@ -18,9 +18,32 @@
   "docker_server_version": "29.9.1",
   "docker_ok": true,
   "docker_gpu_ok": true,
-  "nvidia_smi": "Sun Oct 18 11:38:25 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 615.78.05              KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3080        On  |   00000000:2B:00.0  On |                  N/A |\n| 30%   35C    P0             80W /  368W |    1184MiB /  10240MiB |      1%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A              27      G   /Xwayland                             N/A      |\n|    0   N/A  N/A              58      G   /Xwayland                             N/A      |\n+-----------------------------------------------------------------------------------------+\n",
+  "nvidia_smi": "Sun Oct 18 11:39:28 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 615.78.05              KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3080        On  |   00000000:2B:00.0  On |                  N/A |\n| 30%   36C    P0             88W /  368W |     975MiB /  10240MiB |      2%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A              27      G   /Xwayland                             N/A      |\n|    0   N/A  N/A              58      G   /Xwayland                             N/A      |\n+-----------------------------------------------------------------------------------------+\n",
   "total_mib": 10240,
-  "passed": false,
-  "failed_condition": "model server start (scripts/serve.sh up)",
-  "cause": "serve up failed: Command '['docker', 'compose', '-p', 'aib', '-f', '/mnt/c/dev/Agent-Injection-Bench/docker/compose.yaml', 'up', '-d', '--force-recreate', 'llm']' returned non-zero exit status 1.  Network aib_default Creating \n Network aib_default Creating \n Network aib_default Created \n Network aib_default Created \n Container aib-llm-1 Creating \n Container aib-llm-1 Created \n Container aib-llm-1 Starting \nError response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint aib-llm-1 (3c6ae7791fecb87ad00d755ba253034fa1d70cc09bba461fe351cae1cbd0ae32): Bind for 127.0.0.1:8091 failed: port is already allocated"
+  "server": {
+    "model": "qwen3-4b",
+    "build_info": "b11580-4413a1924",
+    "total_slots": 2,
+    "n_ctx_per_slot": 32768,
+    "model_path": "/models/qwen3-4b/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "health_wait_s": 4.0
+  },
+  "n_ctx_per_slot": 32768,
+  "response": "A unit test checks whether a single unit of code (like a function or method) produces the expected output when given specific inputs.",
+  "elapsed_s": 0.301,
+  "predicted_per_second": 113.61451469123071,
+  "prompt_per_second": 427.12226374799786,
+  "usage": {
+    "completion_tokens": 27,
+    "prompt_tokens": 20,
+    "total_tokens": 47,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "baseline_mib": 9016,
+  "peak_mib": 9018,
+  "memory_samples": 3,
+  "peak_within_total": true,
+  "passed": true
 }

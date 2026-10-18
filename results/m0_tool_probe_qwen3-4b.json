@@ -1,0 +1,25 @@
+{
+  "model": "qwen3-4b",
+  "stamp": {
+    "command": "python scripts/tool_probe.py --model qwen3-4b --attempt 1",
+    "seed": 1,
+    "commit": "8ef04ba7dbafdf3a270008830ebd3413b72b59db"
+  },
+  "attempt": 1,
+  "prompt": "What day is it today? Use the tool.",
+  "tools": [
+    "get_current_day"
+  ],
+  "chat_template_file": null,
+  "tool_calls": [
+    {
+      "function": "get_current_day",
+      "args": {},
+      "id": "JD3qmCjLFTXoiy3ATBOwiSRsRVC8fqlc"
+    }
+  ],
+  "content": "",
+  "malformed_args": [],
+  "finish_reason": "tool_calls",
+  "passed": true
+}
