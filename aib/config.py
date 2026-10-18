@@ -355,14 +355,18 @@ def load_all(config_dir: Path | str | None = None) -> AllConfig:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """`python -m aib.config provider <model key>` prints the model's provider (used by run_benchmark.sh)."""
+    """`python -m aib.config provider <model key>` prints the model's provider (used by run_benchmark.sh);
+    `python -m aib.config local-models` prints the enabled local model keys (used by run_all_local.sh)."""
     import sys
 
     argv = sys.argv[1:] if argv is None else argv
-    if len(argv) != 2 or argv[0] != "provider":
-        print("usage: python -m aib.config provider <model key>", file=sys.stderr)
-        return 2
     models = load_models()
+    if argv == ["local-models"]:
+        print(" ".join(models.local_models()))
+        return 0
+    if len(argv) != 2 or argv[0] != "provider":
+        print("usage: python -m aib.config provider <model key> | local-models", file=sys.stderr)
+        return 2
     if argv[1] not in models.models:
         print(f"unknown model key {argv[1]!r}", file=sys.stderr)
         return 2
