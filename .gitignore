@@ -1,0 +1,27 @@
+# Secrets: keys come from environment variables only (Req 0.9)
+.env
+*.env
+.env.*
+secrets.*
+*.key
+*.pem
+*.token
+
+# Local runs, logs, coverage, and caches
+runs/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+
+# Model files live in ~/aib-models, never in the repository
+*.gguf
+*.safetensors
+*.onnx
+*.bin
