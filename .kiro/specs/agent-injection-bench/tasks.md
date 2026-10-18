@@ -185,7 +185,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Commit first, then run it.
   - _Requirements: 2.1, 2.3, 2.7, 0.1_
 
-- [ ] 2.4 **Automated gate (M1):** run `bash scripts/verify_m1.sh`, which runs `bash scripts/test_unit.sh` and checks:
+- [x] 2.4 **Automated gate (M1):** run `bash scripts/verify_m1.sh`, which runs `bash scripts/test_unit.sh` and checks:
   - `results/m1_catalog.json` has 40 user tasks, each passing its ground truth and reading at least one placeholder, at least 4 tools, an empty `validate_catalog` failure list, and a stamp;
   - regenerating the catalog into `runs/` gives the same content apart from the stamp.
   - Proceed when it exits 0. No manual review stop.

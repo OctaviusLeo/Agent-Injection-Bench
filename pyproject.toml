@@ -47,4 +47,5 @@ markers = [
 
 [tool.coverage.run]
 source = ["aib", "scripts"]
+core = "sysmon"  # sys.monitoring (Python 3.12+): far less overhead in AgentDojo-heavy tests
 omit = ["*/__init__.py"]
