@@ -321,8 +321,39 @@ def compute_metrics(store_dir: str | Path, seed: int, resamples: int = 2000) -> 
         "settings": {"seed": seed, "resamples": resamples, "confidence": CONFIDENCE, "store": str(store_dir),
                      "interval_method": f"bootstrap-task-cluster-{resamples}",
                      "difference_method": f"paired-bootstrap-task-cluster-{resamples}"},
+        "run_facts": run_facts(stores, Path(store_dir).parent / "hosted_run.json"),
         "models": models, "cells": cells, "pooled": pooled, "defense_cost": costs, "filter": filters,
     }
+
+
+def run_facts(stores: dict, hosted_run_path: Path) -> dict:
+    """Counts and settings the Report states, taken from the stores (and the hosted run summary when present)."""
+    records = [r for _, recs in stores.values() for r in recs]
+    headers = [h for h, _ in stores.values() if h]
+    experiment = next((h["config"].get("experiment") for h in headers if (h.get("config") or {}).get("experiment")), {}) or {}
+    conditions = sorted({r["condition"] for r in records}, key=_condition_order)
+    facts = {
+        "n_user_tasks": len({r["user_task_id"] for r in records}),
+        "n_conditions": len(conditions),
+        "n_styles": len([c for c in conditions if c != "clean"]),
+        "n_defenses": len({r["defense"] for r in records}),
+        "n_goals": len({r["injection_task_id"] for r in records if r.get("injection_task_id")}),
+        "n_models": len([m for m, (_, recs) in stores.items() if recs]),
+        "n_records": len(records),
+        "repetitions": experiment.get("repetitions"),
+        "base_seed": experiment.get("base_seed"),
+        "max_iters": experiment.get("max_iters"),
+        "max_tokens": experiment.get("max_tokens"),
+        "temperature": (experiment.get("sampling") or {}).get("temperature"),
+        "top_p": (experiment.get("sampling") or {}).get("top_p"),
+        "hosted": None,
+    }
+    if hosted_run_path.exists():
+        h = json.loads(hosted_run_path.read_text(encoding="utf-8"))
+        facts["hosted"] = {"spend_usd": f"{h['spend_usd']:.4f}", "spend_cap_usd": f"{h['spend_cap_usd']:.2f}",
+                           "stopped_at_cap": h["stopped_at_cap"], "completed_cases": h["completed_cases"],
+                           "planned_cases": h["planned_cases"]}
+    return facts
 
 
 def _condition_order(c: str) -> int:

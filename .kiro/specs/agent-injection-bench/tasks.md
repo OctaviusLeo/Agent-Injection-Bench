@@ -349,7 +349,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
 
 ## M5 — Report, traceability, CI, README
 
-- [ ] 6.1 Implement the Report generator
+- [x] 6.1 Implement the Report generator
   - Rewrite `aib/report.py` to render `docs/REPORT.md` from `docs/report_template.md` and the results files. Write the template with the five sections (question, setup, results, limitations, threats to validity):
     - every number enters through a placeholder filled from `results/metrics.json`, `results/summary.md`, or the configuration files, never typed;
     - it embeds both plots and states the temperature, top-p, other sampling settings, and the 3 Repetitions per Cell;

@@ -29,6 +29,24 @@ def fmt_sampling(sampling: dict) -> str:
     return ", ".join(f"{k}={sampling[k]}" for k in keys if k in sampling and sampling[k] is not None)
 
 
+def run_fact_lines(f: dict) -> list[str]:
+    lines = [
+        f"- User_Tasks: {f.get('n_user_tasks')}; conditions: {f.get('n_conditions')} (clean plus {f.get('n_styles')} "
+        f"Injection_Styles); Defense_Conditions: {f.get('n_defenses')}; Injected_Goals: {f.get('n_goals')}; "
+        f"models: {f.get('n_models')}; case records: {f.get('n_records')}.",
+        f"- Repetitions per Cell: {f.get('repetitions')}; temperature {f.get('temperature')}; top-p {f.get('top_p')}; "
+        f"loop cap {f.get('max_iters')} model calls; output cap {f.get('max_tokens')} tokens per call; base seed {f.get('base_seed')}.",
+    ]
+    h = f.get("hosted")
+    if h:
+        lines.append(f"- Hosted run: {h['completed_cases']} of {h['planned_cases']} planned cases completed; spend "
+                     f"${h['spend_usd']} of the ${h['spend_cap_usd']} Spend_Cap; stopped at the cap: "
+                     f"{'yes' if h['stopped_at_cap'] else 'no'}.")
+    else:
+        lines.append("- Hosted run: no hosted run summary (results/hosted_run.json) was present.")
+    return lines
+
+
 def _cost_lookup(metrics: dict) -> dict:
     return {(c["model"], c["defense"], c["condition"]): c for c in metrics.get("defense_cost", [])}
 
@@ -48,6 +66,10 @@ def render_summary(metrics: dict, stamp: dict) -> str:
         "reduction (paired on the same resampled tasks).",
         "- ASR = carried-out / classified injected cases (unclassified and errored excluded). TSR = task successes / "
         "non-errored cases. Defense_Cost = TSR(none) - TSR(defense), same Model and condition.",
+        "",
+        "## Run facts",
+        "",
+        *run_fact_lines(metrics.get("run_facts") or {}),
         "",
         "## Models",
         "",
