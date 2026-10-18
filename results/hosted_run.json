@@ -1,0 +1,63 @@
+{
+  "stamp": {
+    "command": "bash scripts/run_benchmark.sh gpt-6-luna",
+    "seed": 20261017,
+    "commit": "058cd71d1450133470f1750f0c8eabf91ade1633"
+  },
+  "spend_usd": 0.5474062700000002,
+  "spend_cap_usd": 3.0,
+  "stopped_at_cap": false,
+  "stop_reason": null,
+  "planned_cases": 1440,
+  "completed_cases": 1440,
+  "cells": {
+    "delimit|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "delimit|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "delimit|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "filter|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "filter|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "filter|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "hierarchy|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "hierarchy|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "hierarchy|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "none|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "none|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "none|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    }
+  }
+}

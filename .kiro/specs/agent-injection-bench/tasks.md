@@ -327,7 +327,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests on a small metrics fixture: every rate in the table has its interval, `not computed` Cells show their cause, Defense_Cost rows reference `none`, and both plot files are written and non-empty.
   - _Requirements: 6.1, 6.2, 6.4, 7.3_
 
-- [ ] 5.4 Run the hosted benchmark within the Spend_Cap
+- [x] 5.4 Run the hosted benchmark within the Spend_Cap
   - The hosted grid is design.md's: all 4 defenses × `clean`, `direct`, and `important_instructions` × 40 tasks × 3 Repetitions, in Repetition-major order with 2 workers.
   - Commit, then run `bash scripts/bg.sh run_hosted bash scripts/run_benchmark.sh gpt-6-luna` and wait with `bg_wait.sh`; if it is `LOST`, start it once more (it resumes).
   - Stopping at the Spend_Cap is an expected outcome, not a failure. The run records the spend reached, the cap, whether it stopped at the cap, and the completed cases and Cells in a stamped `results/hosted_run.json`. Never raise the cap.
