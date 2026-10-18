@@ -197,7 +197,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests: the four reused templates equal AgentDojo's (`DirectAttack`, `SystemMessageAttack`, `InjecAgentAttack`, and `ImportantInstructionsAttack._JB_STRING`); the five ids are distinct and include `direct`, `fake_system`, and `hidden_field`; `normalize` handles YAML's `\n` escapes and line wrapping (a planted text found in a YAML-dumped output).
   - _Requirements: 3.1, 3.2_
 
-- [ ] 3.2 Write the property test for injection placement
+- [x] 3.2 Write the property test for injection placement
   - **Property 4: Injection is planted only in Tool_Output, never in the User_Task** — one Hypothesis test, as design.md specifies.
   - **Validates: Requirements 3.1, 3.2, 4.2**
 

@@ -631,7 +631,7 @@ Generation strategy: draw a task and goal, apply a random sequence of 0–5 tool
 
 ### Property 4: Injection is planted only in Tool_Output, never in the User_Task
 
-*For any* style, goal, and User_Task, planting changes only injection placeholders: the task prompt is byte-for-byte unchanged, the planted text appears in at least one ground-truth Tool_Output, and every environment value that differs from the clean environment contains the planted text.
+*For any* style, goal, and User_Task, planting changes only injection placeholders: the task prompt is byte-for-byte unchanged, the planted text appears in at least one ground-truth Tool_Output, and every environment value that differs from the clean environment contains the planted text (the one exception is a cloud file's `size`, which AgentDojo's CloudDrive derives from the file's `content`; it may differ only where that file's `content` does).
 
 Generation strategy: draw (style, goal, task); plant; compare the prompt before and after; run the ground truth and apply `contains_injection` to its outputs; diff the injected and clean environments and assert that every value that differs contains the planted text.
 
