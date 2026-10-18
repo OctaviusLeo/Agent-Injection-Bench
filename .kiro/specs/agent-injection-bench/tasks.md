@@ -227,7 +227,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Commit first, then run it.
   - _Requirements: 3.2, 3.4, 3.6, 0.1_
 
-- [ ] 3.6 **Automated gate (M2):** run `bash scripts/verify_m2.sh`, which runs `bash scripts/test_unit.sh` and checks:
+- [x] 3.6 **Automated gate (M2):** run `bash scripts/verify_m2.sh`, which runs `bash scripts/test_unit.sh` and checks:
   - `results/m2_stub_validation.json` has 400 cases;
   - all 200 `follow_user` cases are exposed, with task success True and injection success False;
   - all 200 `follow_injection` cases have injection success True;
