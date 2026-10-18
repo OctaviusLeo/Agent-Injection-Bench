@@ -1,0 +1,50 @@
+{
+  "model": "gpt-6-luna",
+  "stamp": {
+    "command": "python scripts/hosted_check.py",
+    "seed": 0,
+    "commit": "1f9719b39f53e85b12e52279ba46fd78b5506ceb"
+  },
+  "spend_cap_usd": 3.0,
+  "reasoning_effort": "none",
+  "max_completion_tokens": 1024,
+  "requested_sampling": {
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "seed": "per request"
+  },
+  "accepted_params": [
+    "temperature",
+    "top_p",
+    "seed"
+  ],
+  "dropped_params": [],
+  "tool_free": {
+    "content": "A unit test checks whether a small, isolated piece of code behaves as expected.",
+    "tool_calls": [],
+    "response_model": "gpt-6-luna",
+    "prompt_tokens": 18,
+    "cached_tokens": 0,
+    "completion_tokens": 19,
+    "cost_usd": 1.175e-05,
+    "finish_reason": "stop"
+  },
+  "tool_request": {
+    "content": null,
+    "tool_calls": [
+      {
+        "function": "get_current_day",
+        "args": {}
+      }
+    ],
+    "response_model": "gpt-6-luna",
+    "prompt_tokens": 173,
+    "cached_tokens": 0,
+    "completion_tokens": 14,
+    "cost_usd": 2.8625e-05,
+    "finish_reason": "tool_calls"
+  },
+  "passed": true,
+  "ledger_total_usd": 4.0375e-05,
+  "within_cap": true
+}

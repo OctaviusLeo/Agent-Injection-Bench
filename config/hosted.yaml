@@ -13,4 +13,4 @@ conditions: [clean, direct, important_instructions]
 defenses: [none, delimit, hierarchy, filter]
 workers: 2
 ledger: results/hosted_ledger.jsonl
-accepted_params: null          # written by task 1.5 from the hosted check
+accepted_params: [temperature, top_p, seed]  # written by scripts/hosted_check.py (task 1.5)

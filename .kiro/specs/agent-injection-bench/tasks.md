@@ -144,7 +144,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Record in `docs/ENVIRONMENT.md`, each beside its evidence file under `docs/evidence/`: the `nvidia-smi` output and total MiB, each model's peak MiB and response, per-slot context, the server build from `/props`, the image digest, and each model's repository, revision, file, SHA-256, quantization, and license. Record the models, llama.cpp (MIT), and the image in `THIRD_PARTY.md`, and fill the model lines of design.md's "M0 outcome" block.
   - _Requirements: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 0.4, 0.5, 0.6, 0.7_
 
-- [ ] 1.5 Run the hosted check
+- [x] 1.5 Run the hosted check
   - Write `scripts/hosted_check.py`. Through `ChatLLM` and the ledger, it sends one tool-free request and one request with the `get_current_day` tool to `gpt-6-luna`, with `reasoning_effort: "none"`, `max_completion_tokens: 1024`, and design.md's sampling settings.
     - If the API answers 400 naming an unsupported parameter, drop that parameter and retry. Write the parameters that worked to `config/hosted.yaml` as `accepted_params`.
     - Record the response `model` field, token usage, and cost in a stamped `results/m0_hosted_check.json`. Every request goes through the ledger.

@@ -1,0 +1,2 @@
+{"cached_tokens": 0, "cap_usd": 3.0, "completion_tokens": 19, "cost_usd": 1.175e-05, "event": "request", "prompt_tokens": 18, "purpose": "m0_hosted_check", "response_model": "gpt-6-luna", "total_usd": 1.175e-05, "ts": "2026-10-18T01:16:41+00:00"}
+{"cached_tokens": 0, "cap_usd": 3.0, "completion_tokens": 14, "cost_usd": 2.8625e-05, "event": "request", "prompt_tokens": 173, "purpose": "m0_hosted_check", "response_model": "gpt-6-luna", "total_usd": 4.0375e-05, "ts": "2026-10-18T01:16:42+00:00"}

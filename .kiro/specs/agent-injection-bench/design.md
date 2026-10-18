@@ -597,7 +597,7 @@ Filled in by tasks 1.1–1.5; the M0 gate fails while any `TBD` remains.
 - llama.cpp image digest and build: TBD
 - `qwen3-4b`: file SHA-256, slots and per-slot context, smoke-test peak MiB vs total MiB, tool-call probe result: TBD
 - 8B slot model actually used (`llama3.1-8b`, its bundled-template variant, or `qwen2.5-7b`), with the same evidence: TBD
-- Hosted check: response `model` field, accepted sampling parameters, spend so far: TBD
+- Hosted check: response `model` field `gpt-6-luna`; accepted sampling parameters `temperature`, `top_p`, and `seed` (none rejected); a structured `get_current_day` call; spend so far $0.000040 of the $3.00 cap (`results/m0_hosted_check.json`, `results/hosted_ledger.jsonl`).
 
 ## Correctness Properties
 
