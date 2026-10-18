@@ -5,7 +5,7 @@ services:
   llm:
     image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580@sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00
     ports:
-      - "127.0.0.1:8091:8080"
+      - "127.0.0.1:8097:8080"
     volumes:
       - ${AIB_MODELS:?AIB_MODELS must be set}:/models:ro
     command: >-

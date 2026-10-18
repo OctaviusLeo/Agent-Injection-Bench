@@ -4,8 +4,8 @@ server:
   image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580@sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00
   compose_project: aib
   service: llm
-  host_port: 8091
-  base_url: http://127.0.0.1:8091
+  host_port: 8097   # 8091, the planned port, is published by another project's container (ath-jenkins)
+  base_url: http://127.0.0.1:8097
   flags: [--jinja, --n-gpu-layers, "99", --flash-attn, "on", --cache-type-k, q8_0, --cache-type-v, q8_0]
   min_ctx_per_slot: 32768
   health_timeout_s: 900

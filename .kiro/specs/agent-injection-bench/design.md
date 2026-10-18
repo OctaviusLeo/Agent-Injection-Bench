@@ -274,7 +274,7 @@ The styles subclass `FixedJailbreakAttack` with fixed `user_name` and `model_nam
   - Workspace tasks need a large context. Four tasks call `list_files`, whose output is about 27,700 characters, and one ground-truth path returns about 59,000 characters of tool output.
 - **Fallback for the 8B slot.** If `llama3.1-8b` fails the M0 tool-call probe after the retry cap, task 1.4 first serves it with llama.cpp's bundled template `models/templates/meta-llama-Llama-3.1-8B-Instruct.jinja` from the same build tag (`--chat-template-file`). If it still fails, task 1.4 replaces it with `qwen2.5-7b`: `Qwen/Qwen2.5-7B-Instruct-GGUF` at `bb5d59e06d9551d752d08b292a50eb208b07ab1f`, files `qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf` and `-00002-of-00002.gguf` (Apache-2.0, not gated; llama.cpp lists its template as Hermes 2 Pro). The decision and its evidence are recorded in the "M0 outcome" block.
 - **Model server:** llama.cpp `llama-server` from the image `ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580` (tag confirmed to exist on 2026-10-17; its digest is recorded at M0).
-  - It is the Compose service `llm` of project `aib` (`docker/compose.yaml`), on `127.0.0.1:8091`, with the model directory mounted read-only and a GPU reservation.
+  - It is the Compose service `llm` of project `aib` (`docker/compose.yaml`), on `127.0.0.1:8097` (planned as `8091`, which another project's Jenkins container, `ath-jenkins`, already publishes on this machine), with the model directory mounted read-only and a GPU reservation.
   - Flags: `--jinja`, `--n-gpu-layers 99`, `--flash-attn on`, `--cache-type-k q8_0 --cache-type-v q8_0` (an 8-bit KV cache, which needs flash attention), and `--ctx-size` and `--parallel` per model.
   - Slots: `qwen3-4b` uses 2 slots of 32,768 tokens (`--ctx-size 65536 --parallel 2`); `llama3.1-8b` uses 1 slot of 32,768 tokens.
   - Task 1.4 reads `--help` from the pinned image and uses the flag spellings it lists. It reads the per-slot context from `/props` and requires at least 32,768 tokens per slot.
@@ -335,7 +335,7 @@ Kiro runs every task on the owner's Windows 11 desktop with the RTX 3080.
 | Model files | `~/aib-models/` (`AIB_MODELS`): the GGUF files and the classifier snapshot; never committed |
 | Traces, caches, server logs | `~/aib-runs/` (`AIB_RUNS`); never committed |
 | Hosted API key | `~/.config/aib/secrets.env` (created by the owner, mode 600), exported by `scripts/wsl_run.sh` |
-| Docker | Docker Engine with the NVIDIA Container Toolkit inside WSL; Compose project `aib`, service `llm`, port `127.0.0.1:8091` |
+| Docker | Docker Engine with the NVIDIA Container Toolkit inside WSL; Compose project `aib`, service `llm`, port `127.0.0.1:8097` (moved from `8091`, which another project uses) |
 | Helper scripts | `scripts/wsl_run.sh`, `scripts/bg.sh`, `scripts/bg_status.sh`, `scripts/bg_wait.sh`, written exactly as in `.kiro/steering/environment.md` |
 
 **Rules that keep an unattended run safe and repeatable**

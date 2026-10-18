@@ -130,3 +130,10 @@ def test_main_reports_failures(monkeypatch, capsys):
     assert S.main(["up", "qwen3-4b"]) == 0
     monkeypatch.setattr(S, "compose_down", lambda cfg: None)
     assert S.main(["down"]) == 0
+
+
+def test_compose_port_matches_config():
+    cfg = load_models()
+    compose = S.COMPOSE_FILE.read_text()
+    assert f'"127.0.0.1:{cfg.server.host_port}:8080"' in compose
+    assert cfg.server.base_url == f"http://127.0.0.1:{cfg.server.host_port}"
