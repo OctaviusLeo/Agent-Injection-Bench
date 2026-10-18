@@ -247,7 +247,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
     - window splitting covers the whole text with the configured overlap, and the cache returns the same score.
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
-- [ ] 4.2 Write the property test for Stub_Model determinism
+- [x] 4.2 Write the property test for Stub_Model determinism
   - **Property 10: Stub_Model drives a deterministic case outcome** — one Hypothesis test, as design.md specifies.
   - **Validates: Requirements 8.3, 8.6**
 
