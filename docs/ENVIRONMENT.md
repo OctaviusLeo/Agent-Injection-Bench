@@ -44,3 +44,9 @@ Direct dependencies (exact pins in `pyproject.toml`): agentdojo 0.1.35, openai 3
 | Calibration check | 324 distinct ground-truth outputs scored in 4761.44 CPU seconds (524.57 s wall) | `results/m3_filter_calibration.json` (stamp: `python scripts/filter_calibration.py`, seed 0, commit `081cf580edca759c814006a2dfa59634e1350196`) |
 
 ## CI
+
+| Item | Version | Artifact |
+| --- | --- | --- |
+| GitHub Actions runner | `ubuntu-latest` (GitHub-hosted) | `.github/workflows/ci.yml` |
+| actions/checkout | v7.0.1 (latest release, published 2026-07-20) | `gh api repos/actions/checkout/releases/latest`, read 2026-10-18; pinned in `.github/workflows/ci.yml` |
+| astral-sh/setup-uv | v10.3.0 (latest release, published 2026-10-09) | `gh api repos/astral-sh/setup-uv/releases/latest`, read 2026-10-18; pinned in `.github/workflows/ci.yml` |

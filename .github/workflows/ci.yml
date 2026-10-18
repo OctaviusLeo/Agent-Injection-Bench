@@ -1,0 +1,25 @@
+# CI: unit tests (with the per-module coverage check) and the Stub_Model smoke subset.
+# GitHub-hosted runner only; no GPU, Docker, secrets, or model downloads are needed.
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+      - name: Install the locked environment
+        run: uv sync --frozen
+      - name: Unit tests and coverage check
+        run: bash scripts/test_unit.sh
+      - name: CI smoke subset (Stub_Model)
+        run: uv run --frozen python scripts/ci_smoke.py
