@@ -359,7 +359,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests: all five sections render; every placeholder resolves; the sampling statement is present; an unfilled placeholder fails the render.
   - _Requirements: 7.1, 7.2, 7.4, 7.5, 7.6, 0.15_
 
-- [ ] 6.2 Implement the README/Report number-traceability check
+- [x] 6.2 Implement the README/Report number-traceability check
   - Rewrite `aib/traceability.py` and `scripts/check_traceability.py`: every number in `README.md` and `docs/REPORT.md` (ignoring numbers inside words, dates, version strings, URLs, paths, and inline code) must appear verbatim in a file generated under `results/`. The check reports each untraceable number and exits non-zero when any exist.
   - **Property 11: README/Report number traceability** — one Hypothesis test, as design.md specifies.
   - **Validates: Requirements 7.4, 9.3, 9.4**
