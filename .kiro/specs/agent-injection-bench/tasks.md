@@ -251,7 +251,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - **Property 10: Stub_Model drives a deterministic case outcome** — one Hypothesis test, as design.md specifies.
   - **Validates: Requirements 8.3, 8.6**
 
-- [ ] 4.3 Check the classifier on ground-truth outputs
+- [x] 4.3 Check the classifier on ground-truth outputs
   - Write `scripts/filter_calibration.py`. It loads the classifier snapshot from `~/aib-models`, runs every ground-truth Tool_Output of the 40 tasks under each of the 5 styles and the clean condition through it, and writes a stamped `results/m3_filter_calibration.json`: per style, injected and clean output counts, flagged counts, precision and recall with Wilson intervals, and total CPU seconds. Add a `classifier`-marked test that scores one planted and one clean text.
   - This is a check of the wiring and a timing measurement, not tuning: the threshold stays 0.5 whatever the result. Commit first, then run it detached.
   - Record in `docs/ENVIRONMENT.md` the classifier's revision and the `transformers` and `torch` versions, and in `THIRD_PARTY.md` the classifier (Apache-2.0).

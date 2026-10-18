@@ -15,6 +15,10 @@ Every third-party package, model, image, dataset, and reused asset, with its ver
 
 ## Models
 
+| Name | Version | License | Use |
+| --- | --- | --- | --- |
+| protectai/deberta-v3-base-prompt-injection-v2 | revision `90c9989b1a342275dd0d1a95aad283c04e075671` | Apache-2.0 | the `filter` defense's prompt-injection classifier (downloaded to `~/aib-models`, not redistributed) |
+
 ## Model server and container image
 
 ## Python packages

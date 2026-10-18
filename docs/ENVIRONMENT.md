@@ -35,4 +35,12 @@ Direct dependencies (exact pins in `pyproject.toml`): agentdojo 0.1.35, openai 3
 
 ## Filter classifier
 
+| Item | Value | Artifact |
+| --- | --- | --- |
+| Classifier | `protectai/deberta-v3-base-prompt-injection-v2` at revision `90c9989b1a342275dd0d1a95aad283c04e075671` (base `microsoft/deberta-v3-base`), files in `~/aib-models/classifier` | `results/m0_models.json` (sizes and SHA-256 of every file) |
+| transformers | 5.20.1 | `docs/evidence/uv_tree.txt`; `tests/test_calibration.py::test_real_classifier_scores_planted_and_clean_text` passes against it |
+| torch | 2.14.1+cpu (PyTorch CPU wheel index) | `docs/evidence/uv_tree.txt`; the same test |
+| Settings | threshold 0.5, windows of 512 tokens with 64-token overlap, label `INJECTION` | `config/defenses.yaml` |
+| Calibration check | 324 distinct ground-truth outputs scored in 4761.44 CPU seconds (524.57 s wall) | `results/m3_filter_calibration.json` (stamp: `python scripts/filter_calibration.py`, seed 0, commit `081cf580edca759c814006a2dfa59634e1350196`) |
+
 ## CI
