@@ -209,7 +209,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
     - `classify()` returns each of the four statuses for the matching inputs.
   - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [ ] 3.4 Implement the Stub_Model and the case runner
+- [x] 3.4 Implement the Stub_Model and the case runner
   - Write `aib/stub_model.py` (`StubLLM` with the `follow_user` and `follow_injection` policies) and `aib/runner.py` (`CaseSpec`, `CaseResult`, and `run_case`) exactly as design.md describes.
   - Start `aib/defenses.py` with `RecordingToolsExecutor` and `build_pipeline` for `none` only; task 4.1 adds the other defenses.
   - Unit tests:
