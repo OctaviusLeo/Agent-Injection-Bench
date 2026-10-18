@@ -173,6 +173,8 @@ def test_run_cli_local_and_hosted_with_stubs(tmp_path, monkeypatch, capsys):
     assert E.run_cli("qwen3-4b", pilot=True, workers=1, root=root) == 0
     header = E.ResultsStore(root / "results/pilot/qwen3-4b.jsonl").header()
     assert header["config"]["pilot"] is True and header["config"]["sampling"]["top_k"] == 0
+    assert E.run_cli("gpt-6-luna", pilot=True, workers=1, root=root) == 0
+    assert not (root / "results" / "hosted_run.json").exists()  # only the full hosted run writes its summary
     assert E.run_cli("gpt-6-luna", pilot=False, workers=1, root=root) == 0
     summary = json.loads((root / "results" / "hosted_run.json").read_text())
     assert summary["completed_cases"] == 3 and summary["stopped_at_cap"] is False and summary["spend_cap_usd"] == 3.0

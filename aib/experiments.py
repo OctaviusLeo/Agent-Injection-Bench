@@ -290,7 +290,7 @@ def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT
                        on_result=report)
     total = len(store.completed_ids() & {s.case_id for s in specs})
     print(json.dumps({**summary.to_dict(), "complete_in_store": total}, indent=2), flush=True)
-    if hosted:
+    if hosted and not pilot:
         write_hosted_summary(root, store, specs, summary, ledger.total_usd, cfg.hosted.spend_cap_usd, stamp)
     if summary.stopped_at_cap:
         return 3
