@@ -37,23 +37,24 @@ Direct dependencies (exact pins in `pyproject.toml`): agentdojo 0.1.35, openai 3
 
 Downloaded by `scripts/fetch_models.py` at the pinned revisions; sizes match `config/models.yaml` and each SHA-256 matches the Hugging Face LFS object id (`results/m0_models.json`). Licenses from the Hugging Face API at those revisions (`docs/evidence/model_licenses.txt`).
 
-| Key | Model | Repository and revision | File | SHA-256 | Quantization | License | Slots x context per slot |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `qwen3-4b` | Qwen3-4B-Instruct-2507 | `unsloth/Qwen3-4B-Instruct-2507-GGUF` at revision `a06e946bb6b655725eafa393f4a9745d460374c9` | `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (2497281120 bytes) | `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597` | Q4_K_M | Apache-2.0 | 2 x 32768 tokens |
-| `llama3.1-8b` | Llama-3.1-8B-Instruct | `bartowski/Meta-Llama-3.1-8B-Instruct-GGUF` at revision `bf5b95e96dac0462e2a09145ec66cae9a3f12067` | `Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf` (4920739232 bytes) | `7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c` | Q4_K_M | Llama 3.1 Community License (`llama3.1`) | 1 x 32768 tokens |
+| Key | Model | Repository and revision | Files (size, SHA-256) | Quantization | License | Slots x context per slot |
+| --- | --- | --- | --- | --- | --- | --- |
+| `qwen3-4b` | Qwen3-4B-Instruct-2507 | `unsloth/Qwen3-4B-Instruct-2507-GGUF` at revision `a06e946bb6b655725eafa393f4a9745d460374c9` | `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (2497281120 bytes, SHA-256 `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`) | Q4_K_M | Apache-2.0 | 2 x 32768 tokens |
+| `qwen2.5-7b` | Qwen2.5-7B-Instruct | `Qwen/Qwen2.5-7B-Instruct-GGUF` at revision `bb5d59e06d9551d752d08b292a50eb208b07ab1f` | `qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf` (3993201344 bytes, SHA-256 `dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db`), `qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf` (689872288 bytes, SHA-256 `539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a`) | Q4_K_M | Apache-2.0 | 1 x 32768 tokens |
 
-The fallback `qwen2.5-7b` was not needed: `llama3.1-8b` passed the tool-call probe on its first attempt with the GGUF's own chat template.
+**8B slot: `qwen2.5-7b` replaced `llama3.1-8b`.** Llama-3.1-8B-Instruct (`bartowski/Meta-Llama-3.1-8B-Instruct-GGUF` at revision `bf5b95e96dac0462e2a09145ec66cae9a3f12067`, downloaded and verified in `results/m0_models.json`) passed the single-call smoke test and tool-call probe (`results/m0_smoke_llama3.1-8b.json`, `results/m0_tool_probe_llama3.1-8b.json`), but when a turn needs two tools it joins two JSON calls with `; `, which llama.cpp build b11580 cannot parse: the server answers HTTP 500 and the first benchmark attempt stopped after 46 cases. The multi-tool probe (`scripts/multi_tool_probes.sh`; three two-tool prompts x 8 seeds x 3 `parallel_tool_calls` settings) parsed 0 of 72 Llama turns with the GGUF's template and 0 of 72 with llama.cpp's bundled template from the same build tag (`results/m0_multi_tool_probe_llama3.1-8b_gguf-template.json`, `results/m0_multi_tool_probe_llama3.1-8b_llamacpp-bundled-template.json`), against 72 of 72 for `qwen2.5-7b` and 72 of 72 for `qwen3-4b`. Following design.md's fallback order, `qwen2.5-7b` is the 8B-slot model; its partial store was discarded to `~/aib-runs/discarded/`.
 
 ## M0 smoke tests
 
-One tool-free prompt per model with a 120-second limit; GPU memory sampled about every 100 ms during generation (`scripts/smoke_test.py`, results in `results/m0_smoke_qwen3-4b.json` and `results/m0_smoke_llama3.1-8b.json`), then one request with AgentDojo's `get_current_day` tool (`scripts/tool_probe.py`, results in `results/m0_tool_probe_qwen3-4b.json` and `results/m0_tool_probe_llama3.1-8b.json`). Memory figures are total GPU memory in use, including the Windows desktop.
+One tool-free prompt per model with a 120-second limit; GPU memory sampled about every 100 ms during generation (`scripts/smoke_test.py`, results in `results/m0_smoke_<model>.json`), then one request with AgentDojo's `get_current_day` tool (`scripts/tool_probe.py`, results in `results/m0_tool_probe_<model>.json`). Memory figures are total GPU memory in use, including the Windows desktop.
 
 | Model | Python | Docker | Total MiB | Baseline MiB | Peak MiB | Context per slot | Decode tokens/s | Response | Tool-call probe |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `qwen3-4b` | 3.12.3 | yes | 10240 | 9016 | 9018 | 32768 | 113.6 | A unit test checks whether a single unit of code (like a function or method) produces the expected output when given specific inputs. | passed (`get_current_day`, arguments `{}`) |
-| `llama3.1-8b` | 3.12.3 | yes | 10240 | 8159 | 8161 | 32768 | 94.1 | A unit test checks whether a specific piece of code, or unit, performs its intended function correctly under given conditions. | passed (`get_current_day`, arguments `{}`) |
+| `qwen3-4b` (in use) | 3.12.3 | yes | 10240 | 9016 | 9018 | 32768 | 113.6 | A unit test checks whether a single unit of code (like a function or method) produces the expected output when given specific inputs. | passed (`get_current_day`) |
+| `qwen2.5-7b` (in use) | 3.12.3 | yes | 10240 | 6445 | 6445 | 32768 | 102.5 | A unit test checks whether individual units of code, such as functions or methods, behave as expected under specific conditions. | passed (`get_current_day`) |
+| `llama3.1-8b` (replaced (see above)) | 3.12.3 | yes | 10240 | 8159 | 8161 | 32768 | 94.1 | A unit test checks whether a specific piece of code, or unit, performs its intended function correctly under given conditions. | passed (`get_current_day`) |
 
-Stamps: `python scripts/smoke_test.py --model qwen3-4b` and `python scripts/smoke_test.py --model llama3.1-8b`, seed 0, commits `8ef04ba7dbafdf3a270008830ebd3413b72b59db` and `62155b8eb045a8d031dcd93179d258c2572cf03e`.
+Stamped commits of the models in use: `8ef04ba7dbafdf3a270008830ebd3413b72b59db`, `31a0db3372b0d73741ce10b7440c2a7b89829b3a` (seed 0).
 
 ## Hosted model and Spend_Cap
 

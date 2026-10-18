@@ -267,7 +267,7 @@ The styles subclass `FixedJailbreakAttack` with fixed `user_name` and `model_nam
 | `llama3.1-8b` | Llama-3.1-8B-Instruct, GGUF Q4_K_M | `bartowski/Meta-Llama-3.1-8B-Instruct-GGUF` at `bf5b95e96dac0462e2a09145ec66cae9a3f12067`, file `Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf` (4,920,739,232 bytes) | Llama 3.1 Community License (`llama3.1`); not gated |
 | `gpt-6-luna` | OpenAI `gpt-6-luna`, Chat Completions | hosted; the `model` field of each response is recorded | OpenAI terms of use |
 
-- **Why these two local models:** they give a size and family contrast that fits a 10 GB card with a 32,768-token context.
+- **Why these two local models:** they give a size and family contrast that fits a 10 GB card with a 32,768-token context. (Outcome: the family contrast was lost at M0. `llama3.1-8b` could not hold multi-call turns through llama.cpp, so the fallback `qwen2.5-7b` took the 8B slot and both local models are Qwen-family; see "M0 outcome".)
   - Qwen3-4B-Instruct-2507 is a non-thinking model. The GGUF's chat template renders tool calls as JSON inside `<tool_call>` tags.
   - The Llama 3.1 GGUF's template has Llama 3.1's tool support (`ipython` role, `<|python_tag|>`).
   - llama.cpp's function-calling documentation lists both formats as natively handled ("Hermes 2/3, Qwen 2.5" and "Llama 3.1 / 3.3 … Llama 3.2"), read 2026-10-17.
@@ -596,7 +596,7 @@ Filled in by tasks 1.1–1.5; the M0 gate fails while any `TBD` remains.
 - InjecAgent license evidence (repository `LICENCE` file, fetched on the target machine): MIT, copyright 2023 Qiusi Zhan; `docs/evidence/injecagent_license.json` and `injecagent_LICENSE.txt`, fetched from `raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/main/LICENCE` by `scripts/license_evidence.py`.
 - llama.cpp image digest and build: `ghcr.io/ggml-org/llama.cpp@sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00`, `llama-server` build `b11580-4413a1924` (`docs/evidence/llama_image.txt`, `/props`).
 - `qwen3-4b`: SHA-256 `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`; 2 slots of 32768 tokens; smoke-test peak 9018 MiB of 10240 MiB; tool-call probe passed on attempt 1 (`results/m0_smoke_qwen3-4b.json`, `results/m0_tool_probe_qwen3-4b.json`).
-- 8B slot model actually used: `llama3.1-8b` with the GGUF's own template (no fallback needed); SHA-256 `7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c`; 1 slot of 32768 tokens; smoke-test peak 8161 MiB of 10240 MiB; tool-call probe passed on attempt 1 (`results/m0_smoke_llama3.1-8b.json`, `results/m0_tool_probe_llama3.1-8b.json`).
+- 8B slot model actually used: `qwen2.5-7b` (design.md fallback order). `llama3.1-8b` passed the single-call smoke test and probe but joins multi-call turns with `; `, which llama.cpp b11580 rejects with HTTP 500; its first benchmark attempt stopped after 46 cases, and the multi-tool probe parsed 0 of 72 turns with the GGUF template and 0 of 72 with llama.cpp's bundled template, against 72 of 72 for `qwen2.5-7b` (`results/m0_multi_tool_probe_*.json`). `qwen2.5-7b`: SHA-256 `dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db` and `539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a`; 1 slot of 32768 tokens; smoke-test peak 6445 MiB of 10240 MiB; tool-call probe passed on attempt 1 (`results/m0_smoke_qwen2.5-7b.json`, `results/m0_tool_probe_qwen2.5-7b.json`).
 - Hosted check: response `model` field `gpt-6-luna`; accepted sampling parameters `temperature`, `top_p`, and `seed` (none rejected); a structured `get_current_day` call; spend so far $0.000040 of the $3.00 cap (`results/m0_hosted_check.json`, `results/hosted_ledger.jsonl`).
 
 ## Correctness Properties
@@ -765,6 +765,7 @@ Each milestone ends in an automated gate before the next begins; failures that s
 
 - **One environment.** All 40 User_Tasks come from AgentDojo's workspace suite, so the results describe an email, calendar, and file-drive assistant, not agents in general.
 - **Small local models.** Their task success can be low even without attacks, which widens intervals and limits what Defense_Cost can resolve.
+- **One model family locally.** Both local models are Qwen-family (`qwen3-4b`, `qwen2.5-7b`): Llama-3.1-8B was replaced at M0 because llama.cpp could not parse its multi-call turns, so the local comparison is across size and generation, not family.
 - **Hosted grid is smaller:** 3 of the 6 conditions, because of the Spend_Cap; the hosted model is an alias that can change over time, and the recorded response `model` field identifies what answered.
 - **Different decoding stacks.** Local models are 4-bit GGUF quantizations served by llama.cpp; quantization and the server's chat template can change behavior relative to the original weights.
 - **Exposure-conditioned ASR.** Cases where the Agent never read the injected data are excluded from the ASR denominator; exposure rates are reported beside every ASR.

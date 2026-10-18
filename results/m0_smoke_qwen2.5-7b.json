@@ -1,0 +1,49 @@
+{
+  "model": "qwen2.5-7b",
+  "stamp": {
+    "command": "python scripts/smoke_test.py --model qwen2.5-7b",
+    "seed": 0,
+    "commit": "31a0db3372b0d73741ce10b7440c2a7b89829b3a"
+  },
+  "repo": "Qwen/Qwen2.5-7B-Instruct-GGUF",
+  "revision": "bb5d59e06d9551d752d08b292a50eb208b07ab1f",
+  "file": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf",
+  "quantization": "Q4_K_M",
+  "license": "apache-2.0",
+  "configured_ctx_size": 32768,
+  "configured_parallel": 1,
+  "prompt": "In one short sentence, explain what a unit test checks.",
+  "python": "3.12.3",
+  "python_ok": true,
+  "docker_server_version": "29.9.1",
+  "docker_ok": true,
+  "docker_gpu_ok": true,
+  "nvidia_smi": "Sun Oct 18 19:04:20 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 615.78.05              KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3080        On  |   00000000:2B:00.0  On |                  N/A |\n| 30%   50C    P0             84W /  368W |     883MiB /  10240MiB |      1%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A              27      G   /Xwayland                             N/A      |\n|    0   N/A  N/A              58      G   /Xwayland                             N/A      |\n+-----------------------------------------------------------------------------------------+\n",
+  "total_mib": 10240,
+  "server": {
+    "model": "qwen2.5-7b",
+    "build_info": "b11580-4413a1924",
+    "total_slots": 1,
+    "n_ctx_per_slot": 32768,
+    "model_path": "/models/qwen2.5-7b/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf",
+    "health_wait_s": 2.0
+  },
+  "n_ctx_per_slot": 32768,
+  "response": "A unit test checks whether individual units of code, such as functions or methods, behave as expected under specific conditions.",
+  "elapsed_s": 0.292,
+  "predicted_per_second": 102.54215374189695,
+  "prompt_per_second": 888.6191725004876,
+  "usage": {
+    "completion_tokens": 24,
+    "prompt_tokens": 41,
+    "total_tokens": 65,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "baseline_mib": 6445,
+  "peak_mib": 6445,
+  "memory_samples": 3,
+  "peak_within_total": true,
+  "passed": true
+}

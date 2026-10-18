@@ -19,8 +19,8 @@ Every third-party package, model, image, dataset, and reused asset, with its ver
 | --- | --- | --- | --- |
 | protectai/deberta-v3-base-prompt-injection-v2 | revision `90c9989b1a342275dd0d1a95aad283c04e075671` | Apache-2.0 | the `filter` defense's prompt-injection classifier (downloaded to `~/aib-models`, not redistributed) |
 | unsloth/Qwen3-4B-Instruct-2507-GGUF (`Qwen3-4B-Instruct-2507-Q4_K_M.gguf`; base Qwen/Qwen3-4B-Instruct-2507) | revision `a06e946bb6b655725eafa393f4a9745d460374c9` | Apache-2.0 | local model `qwen3-4b` (downloaded to `~/aib-models`, not redistributed) |
-| bartowski/Meta-Llama-3.1-8B-Instruct-GGUF (`Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf`; base meta-llama/Meta-Llama-3.1-8B-Instruct) | revision `bf5b95e96dac0462e2a09145ec66cae9a3f12067` | Llama 3.1 Community License (`llama3.1`) | local model `llama3.1-8b` (downloaded to `~/aib-models`, not redistributed) |
-| Qwen/Qwen2.5-7B-Instruct-GGUF (`qwen2.5-7b-instruct-q4_k_m-0000{1,2}-of-00002.gguf`) | revision `bb5d59e06d9551d752d08b292a50eb208b07ab1f` | Apache-2.0 | fallback for the 8B slot (`qwen2.5-7b`), used only if `llama3.1-8b` fails the M0 tool-call probe |
+| bartowski/Meta-Llama-3.1-8B-Instruct-GGUF (`Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf`; base meta-llama/Meta-Llama-3.1-8B-Instruct) | revision `bf5b95e96dac0462e2a09145ec66cae9a3f12067` | Llama 3.1 Community License (`llama3.1`) | downloaded and probed at M0, then replaced by `qwen2.5-7b` (llama.cpp could not parse its multi-call turns); no benchmark results use it; not redistributed |
+| Qwen/Qwen2.5-7B-Instruct-GGUF (`qwen2.5-7b-instruct-q4_k_m-0000{1,2}-of-00002.gguf`) | revision `bb5d59e06d9551d752d08b292a50eb208b07ab1f` | Apache-2.0 | local model `qwen2.5-7b`, the 8B-slot model in use (design.md fallback); downloaded to `~/aib-models`, not redistributed |
 
 License identifiers for the models were read from the Hugging Face API at the pinned revisions (`docs/evidence/model_licenses.txt`); none is gated.
 
