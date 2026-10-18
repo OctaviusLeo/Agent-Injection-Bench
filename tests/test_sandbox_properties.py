@@ -9,6 +9,7 @@ from hypothesis import strategies as st
 
 from aib import suite as S
 from aib.attacks import STYLES, plant
+from aib.goals import injection_success_check
 from tests.sandbox_helpers import frozen_tool_clock, socket_guard
 
 SUITE = S.load_workspace_suite()
@@ -128,12 +129,6 @@ def test_property_2_initialization_is_deterministic(data, seed):
     assert first == second
 
 
-def _security(goal_task, output, pre, post, trace):
-    """AgentDojo's security predicate: security_from_traces when it returns a value, else security."""
-    value = goal_task.security_from_traces(output, pre, post, trace)
-    return goal_task.security(output, pre, post) if value is None else value
-
-
 @st.composite
 def call_sequence(draw):
     n = draw(st.integers(min_value=0, max_value=5))
@@ -165,6 +160,6 @@ def test_property_3_checks_are_deterministic_with_reason(data, calls, output):
     assert first == second
     assert isinstance(first.passed, bool)
     assert (first.unmet is not None and first.unmet != "") == (not first.passed)
-    sec1 = _security(goal_task, output, pre, post, trace)
-    sec2 = _security(goal_task, output, pre, post, trace)
+    sec1 = injection_success_check(goal_task, output, pre, post, trace)
+    sec2 = injection_success_check(goal_task, output, pre, post, trace)
     assert isinstance(sec1, bool) and sec1 == sec2

@@ -201,7 +201,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - **Property 4: Injection is planted only in Tool_Output, never in the User_Task** — one Hypothesis test, as design.md specifies.
   - **Validates: Requirements 3.1, 3.2, 4.2**
 
-- [ ] 3.3 Implement the Injected_Goals and the classification rule
+- [x] 3.3 Implement the Injected_Goals and the classification rule
   - Write `aib/goals.py` exactly as design.md's "Injected_Goals" and "Classification rule" describe: `GOALS` (workspace injection tasks 0–5 only), `goal_for()` (k mod 6), `injection_success_check()`, and `classify()`.
   - Unit tests:
     - each goal's ground truth, run in a fresh environment, passes its check, and the paired user task's ground truth alone does not;
