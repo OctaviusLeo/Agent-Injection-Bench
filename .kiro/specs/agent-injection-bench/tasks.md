@@ -163,7 +163,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
 
 ## M1 — Sandbox, simulated tools, user tasks, success checks
 
-- [ ] 2.1 Build the workspace Sandbox and the User_Task catalog
+- [x] 2.1 Build the workspace Sandbox and the User_Task catalog
   - Write `aib/suite.py` exactly as design.md's "Benchmark substrate" and "Sandbox, User_Tasks, and Task_Success_Check" describe: the suite construction order with the v1.1.2 registration, `load_user_tasks()` (40 tasks ordered by number), `injection_candidates()` (canary run on the ground truth), `init_case_environment()`, `CheckOutcome`, `task_success_check()` with its reason, and `validate_catalog()`.
   - Unit tests:
     - the version mapping in design.md (injection tasks 0, 4, and 5 and user tasks 13 and 33 from the `v1_1_2` modules, and so on);
