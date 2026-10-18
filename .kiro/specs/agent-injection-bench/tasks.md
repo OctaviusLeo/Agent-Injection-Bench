@@ -286,7 +286,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - If a case errored for a harness reason (not the model's behavior), fix it within the retry cap and rerun the pilot. Report the real pilot outcomes; never change sampling, prompts, or thresholds to improve them.
   - _Requirements: 5.1, 5.6, 0.1, 0.4_
 
-- [ ] 4.6 Run the full benchmark on `qwen3-4b`
+- [x] 4.6 Run the full benchmark on `qwen3-4b`
   - Commit, then run `bash scripts/bg.sh run_qwen3-4b bash scripts/run_benchmark.sh qwen3-4b`. Wait with `bg_wait.sh` until it is no longer `RUNNING`; if it is `LOST`, start it once more with the same command (it resumes).
   - The run writes `results/raw/qwen3-4b.jsonl` (a header plus 2,880 records). Commit the store when it is complete.
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 0.1_
