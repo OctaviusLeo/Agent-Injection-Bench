@@ -314,7 +314,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - It runs as `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, stamped with command, seed, and commit.
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.8_
 
-- [ ] 5.2 Write property and unit tests for the metrics
+- [x] 5.2 Write property and unit tests for the metrics
   - **Property 5: Attack_Success_Rate counts only classified injected cases**, **Property 6: Rates and filter metrics lie in their ranges**, **Property 7: Confidence interval brackets the point estimate and is deterministic**, **Property 8: Defense_Cost equals the task-success-rate difference from the control**, and **Property 9: Metrics are deterministic under a fixed seed** — one Hypothesis test each.
   - Unit tests: `wilson_interval(27, 30)` is [0.744, 0.965] and `wilson_interval(15, 30)` is [0.332, 0.668] within 1e-3; a store where one task is all successes and another all failures gives a cluster interval wider than the Wilson interval on the same counts; precision and recall on a labeled fixture; an empty Cell is `not computed`.
   - **Validates: Requirements 0.3, 3.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8**
