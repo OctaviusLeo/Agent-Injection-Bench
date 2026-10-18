@@ -58,3 +58,27 @@ def test_main_usage_and_dispatch(monkeypatch, capsys):
 def test_stamp_helpers():
     assert G.stamp_ok({"stamp": GOOD_STAMP}) and not G.stamp_ok({}) and not G.stamp_ok(None)
     assert G.without_stamp({"stamp": 1, "a": 2}) == {"a": 2}
+
+
+def _m2_cases(fu_ok=True, fi_ok=True, styles=("direct", "fake_system", "ignore_previous", "important_instructions", "hidden_field")):
+    cases = []
+    for policy in ("follow_user", "follow_injection"):
+        for style in styles:
+            for k in range(40):
+                ok = fu_ok if policy == "follow_user" else fi_ok
+                cases.append({"policy": policy, "style": style, "user_task_id": f"user_task_{k}",
+                              "injection_task_id": f"injection_task_{k % 6}", "exposed": True,
+                              "task_success": ok if policy == "follow_user" else False,
+                              "injection_success": (not ok) if policy == "follow_user" else ok})
+    return cases
+
+
+def test_m2_passes_and_fails(tmp_path):
+    _write(tmp_path, "results/m2_stub_validation.json", {"stamp": GOOD_STAMP, "cases": _m2_cases()})
+    assert G.check_m2(tmp_path) == []
+    _write(tmp_path, "results/m2_stub_validation.json",
+           {"stamp": {}, "cases": _m2_cases(fu_ok=False, fi_ok=False, styles=("direct", "fake_system", "a", "b"))})
+    text = "\n".join(G.check_m2(tmp_path))
+    for needle in ("expected 400", "follow_user must", "follow_injection must", "expected 5 styles", "missing stamp"):
+        assert needle in text
+    assert "missing" in G.check_m2(tmp_path / "nowhere")[0]
