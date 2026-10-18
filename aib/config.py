@@ -352,3 +352,23 @@ def load_all(config_dir: Path | str | None = None) -> AllConfig:
     if problems:
         raise ConfigError(f"{d}: " + "; ".join(problems))
     return cfg
+
+
+def main(argv: list[str] | None = None) -> int:
+    """`python -m aib.config provider <model key>` prints the model's provider (used by run_benchmark.sh)."""
+    import sys
+
+    argv = sys.argv[1:] if argv is None else argv
+    if len(argv) != 2 or argv[0] != "provider":
+        print("usage: python -m aib.config provider <model key>", file=sys.stderr)
+        return 2
+    models = load_models()
+    if argv[1] not in models.models:
+        print(f"unknown model key {argv[1]!r}", file=sys.stderr)
+        return 2
+    print(models.models[argv[1]].provider)
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(main())

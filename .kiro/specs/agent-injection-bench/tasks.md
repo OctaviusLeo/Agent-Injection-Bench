@@ -257,7 +257,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Record in `docs/ENVIRONMENT.md` the classifier's revision and the `transformers` and `torch` versions, and in `THIRD_PARTY.md` the classifier (Apache-2.0).
   - _Requirements: 4.4, 4.5, 0.5, 0.6, 0.7_
 
-- [ ] 4.4 Implement the grid runner and the Results_Store
+- [x] 4.4 Implement the grid runner and the Results_Store
   - Write `aib/experiments.py` exactly as design.md's "Case runner, grid runner, and Results_Store" describes:
     - `build_grid` (local models: all six conditions in defense, condition, task, Repetition order; hosted: the hosted conditions in Repetition-major order);
     - `case_seed`;
