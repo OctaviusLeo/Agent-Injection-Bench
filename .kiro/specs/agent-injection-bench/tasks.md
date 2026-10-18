@@ -192,7 +192,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
 
 ## M2 — Injection styles, injected goals, classification, case runner
 
-- [ ] 3.1 Implement the Injection_Styles
+- [x] 3.1 Implement the Injection_Styles
   - Write `aib/attacks.py` exactly as design.md's "Injection_Styles" table and interfaces describe: the five templates verbatim, `StyleAttack`, `plant()`, `normalize()`, and `contains_injection()`.
   - Unit tests: the four reused templates equal AgentDojo's (`DirectAttack`, `SystemMessageAttack`, `InjecAgentAttack`, and `ImportantInstructionsAttack._JB_STRING`); the five ids are distinct and include `direct`, `fake_system`, and `hidden_field`; `normalize` handles YAML's `\n` escapes and line wrapping (a planted text found in a YAML-dumped output).
   - _Requirements: 3.1, 3.2_

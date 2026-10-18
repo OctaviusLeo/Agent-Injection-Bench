@@ -8,6 +8,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from aib import suite as S
+from aib.attacks import STYLES, plant
 from tests.sandbox_helpers import frozen_tool_clock, socket_guard
 
 SUITE = S.load_workspace_suite()
@@ -116,8 +117,12 @@ def injection_mapping(draw, task):
 def test_property_2_initialization_is_deterministic(data, seed):
     ref = data.draw(st.sampled_from(USER_TASKS))
     goal = data.draw(st.sampled_from(GOALS))
-    injections = data.draw(injection_mapping(ref.task))
-    injections = {k: f"{v} {S.get_injection_task(goal).GOAL}" for k, v in injections.items()}
+    style = data.draw(st.sampled_from([None, *sorted(STYLES)]))  # None: a drawn mapping of template-like text
+    if style is None:
+        injections = data.draw(injection_mapping(ref.task))
+        injections = {k: f"{v} {S.get_injection_task(goal).GOAL}" for k, v in injections.items()}
+    else:
+        injections = plant(style, ref.task, S.get_injection_task(goal))
     first = S.init_case_environment(ref.task, injections, seed).model_dump(mode="json")
     second = S.init_case_environment(ref.task, injections, seed).model_dump(mode="json")
     assert first == second
