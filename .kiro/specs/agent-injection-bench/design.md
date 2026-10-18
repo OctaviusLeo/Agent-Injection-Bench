@@ -594,9 +594,9 @@ Filled in by tasks 1.1–1.5; the M0 gate fails while any `TBD` remains.
 
 - AgentDojo license evidence (installed package metadata and bundled LICENSE): `agentdojo` 0.1.35 carries the classifier `License :: OSI Approved :: MIT License` and bundles the MIT `LICENSE` (copyright 2024 Edoardo Debenedetti et al.); `docs/evidence/agentdojo_license.json` and `agentdojo_LICENSE.txt`, read on the target machine by `scripts/license_evidence.py`.
 - InjecAgent license evidence (repository `LICENCE` file, fetched on the target machine): MIT, copyright 2023 Qiusi Zhan; `docs/evidence/injecagent_license.json` and `injecagent_LICENSE.txt`, fetched from `raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/main/LICENCE` by `scripts/license_evidence.py`.
-- llama.cpp image digest and build: TBD
-- `qwen3-4b`: file SHA-256, slots and per-slot context, smoke-test peak MiB vs total MiB, tool-call probe result: TBD
-- 8B slot model actually used (`llama3.1-8b`, its bundled-template variant, or `qwen2.5-7b`), with the same evidence: TBD
+- llama.cpp image digest and build: `ghcr.io/ggml-org/llama.cpp@sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00`, `llama-server` build `b11580-4413a1924` (`docs/evidence/llama_image.txt`, `/props`).
+- `qwen3-4b`: SHA-256 `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`; 2 slots of 32768 tokens; smoke-test peak 9018 MiB of 10240 MiB; tool-call probe passed on attempt 1 (`results/m0_smoke_qwen3-4b.json`, `results/m0_tool_probe_qwen3-4b.json`).
+- 8B slot model actually used: `llama3.1-8b` with the GGUF's own template (no fallback needed); SHA-256 `7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c`; 1 slot of 32768 tokens; smoke-test peak 8161 MiB of 10240 MiB; tool-call probe passed on attempt 1 (`results/m0_smoke_llama3.1-8b.json`, `results/m0_tool_probe_llama3.1-8b.json`).
 - Hosted check: response `model` field `gpt-6-luna`; accepted sampling parameters `temperature`, `top_p`, and `seed` (none rejected); a structured `get_current_day` call; spend so far $0.000040 of the $3.00 cap (`results/m0_hosted_check.json`, `results/hosted_ledger.jsonl`).
 
 ## Correctness Properties

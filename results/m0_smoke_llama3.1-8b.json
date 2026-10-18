@@ -1,0 +1,49 @@
+{
+  "model": "llama3.1-8b",
+  "stamp": {
+    "command": "python scripts/smoke_test.py --model llama3.1-8b",
+    "seed": 0,
+    "commit": "62155b8eb045a8d031dcd93179d258c2572cf03e"
+  },
+  "repo": "bartowski/Meta-Llama-3.1-8B-Instruct-GGUF",
+  "revision": "bf5b95e96dac0462e2a09145ec66cae9a3f12067",
+  "file": "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+  "quantization": "Q4_K_M",
+  "license": "llama3.1",
+  "configured_ctx_size": 32768,
+  "configured_parallel": 1,
+  "prompt": "In one short sentence, explain what a unit test checks.",
+  "python": "3.12.3",
+  "python_ok": true,
+  "docker_server_version": "29.9.1",
+  "docker_ok": true,
+  "docker_gpu_ok": true,
+  "nvidia_smi": "Sun Oct 18 11:40:02 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 615.78.05              KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3080        On  |   00000000:2B:00.0  On |                  N/A |\n| 30%   36C    P0             80W /  368W |    1138MiB /  10240MiB |      9%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A              27      G   /Xwayland                             N/A      |\n|    0   N/A  N/A              58      G   /Xwayland                             N/A      |\n+-----------------------------------------------------------------------------------------+\n",
+  "total_mib": 10240,
+  "server": {
+    "model": "llama3.1-8b",
+    "build_info": "b11580-4413a1924",
+    "total_slots": 1,
+    "n_ctx_per_slot": 32768,
+    "model_path": "/models/llama3.1-8b/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+    "health_wait_s": 6.0
+  },
+  "n_ctx_per_slot": 32768,
+  "response": "A unit test checks whether a specific piece of code, or unit, performs its intended function correctly under given conditions.",
+  "elapsed_s": 0.321,
+  "predicted_per_second": 94.12419482889858,
+  "prompt_per_second": 820.358863366613,
+  "usage": {
+    "completion_tokens": 24,
+    "prompt_tokens": 47,
+    "total_tokens": 71,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "baseline_mib": 8159,
+  "peak_mib": 8161,
+  "memory_samples": 3,
+  "peak_within_total": true,
+  "passed": true
+}

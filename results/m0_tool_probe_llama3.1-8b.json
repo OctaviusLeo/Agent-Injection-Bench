@@ -1,0 +1,25 @@
+{
+  "model": "llama3.1-8b",
+  "stamp": {
+    "command": "python scripts/tool_probe.py --model llama3.1-8b --attempt 1",
+    "seed": 1,
+    "commit": "62155b8eb045a8d031dcd93179d258c2572cf03e"
+  },
+  "attempt": 1,
+  "prompt": "What day is it today? Use the tool.",
+  "tools": [
+    "get_current_day"
+  ],
+  "chat_template_file": null,
+  "tool_calls": [
+    {
+      "function": "get_current_day",
+      "args": {},
+      "id": "CDorGTzGo1XTdhzGjmNqbeQ7m2qqp8ug"
+    }
+  ],
+  "content": "",
+  "malformed_args": [],
+  "finish_reason": "tool_calls",
+  "passed": true
+}

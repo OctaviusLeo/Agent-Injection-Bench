@@ -127,7 +127,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Unit tests for `aib/server.py` with fakes for `docker`, `nvidia-smi`, and HTTP: the idle rule waits and then raises; `up` passes the model's settings; `/health` polling times out cleanly.
   - _Requirements: 0.5, 0.6, 0.10, 1.8_
 
-- [ ] 1.4 Run the smoke test and the tool-call probe for each Local_Model
+- [x] 1.4 Run the smoke test and the tool-call probe for each Local_Model
   - With nothing of this project running, record the idle reading of `nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits` in `runs/gpu_idle_mib.txt`.
   - Write `scripts/smoke_test.py --model <key>`, with its logic in `aib/smoke.py` and unit tests that fake `nvidia-smi`, Docker, and HTTP. It does the following and writes a stamped `results/m0_smoke_<key>.json`:
     - verifies Python ≥ 3.11 and that Docker works (`docker version`, then `docker run --rm --gpus all ubuntu nvidia-smi`);
