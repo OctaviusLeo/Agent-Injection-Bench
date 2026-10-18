@@ -53,9 +53,9 @@ def gpu_memory_total_mib(run: Callable = _run) -> int:
     return int(out.strip().splitlines()[0])
 
 
-def read_idle_mib(path: Path = IDLE_FILE) -> int | None:
+def read_idle_mib(path: Path | None = None) -> int | None:
     try:
-        return int(path.read_text(encoding="utf-8").strip())
+        return int((path or IDLE_FILE).read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         return None
 
