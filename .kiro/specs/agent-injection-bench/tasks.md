@@ -236,7 +236,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
 
 ## M3 — Defenses, grid runner, local-model runs
 
-- [ ] 4.1 Implement the Defense_Conditions and the classifier wrapper
+- [x] 4.1 Implement the Defense_Conditions and the classifier wrapper
   - Complete `aib/defenses.py` and write `aib/classifier.py` exactly as design.md's "Defense_Conditions" and "Defenses and classifier" describe: all four defenses with their texts read from `config/defenses.yaml`, `RecordingPIDetector` with a `FilterDecision` per screened output, `InjectionClassifier` (windowed, cached by SHA-256, thread-safe, loading only the local snapshot), and `KeywordClassifier`. Confirm design.md records that the optional tool-permission-limit defense is not implemented and why.
   - Unit tests:
     - each pipeline's element order;
