@@ -304,7 +304,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
 
 ## M4 — Metrics, statistics, plots, hosted run
 
-- [ ] 5.1 Implement the metrics and statistics layer
+- [x] 5.1 Implement the metrics and statistics layer
   - Rewrite `aib/metrics.py` to design.md's "Statistics" section and interfaces:
     - `RateCI`, `wilson_interval`, `cluster_bootstrap_rate`, and `paired_bootstrap_difference`;
     - ASR, TSR, and exposure per Cell, with the status rules;
