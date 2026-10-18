@@ -1,0 +1,22 @@
+{
+  "purpose": "Task 6.5: prove CI reports a failed status when a unit test fails (Req 8.4)",
+  "red": {
+    "run_id": 39090734675,
+    "branch": "ci-fail-check",
+    "commit": "73c349e88337cb2c1da16aaa54250d3755a932d0",
+    "conclusion": "failure",
+    "created": "2026-10-18T02:37:10Z",
+    "url": "https://github.com/OctaviusLeo/Agent-Injection-Bench/actions/runs/39090734675",
+    "failing_test": "tests/test_ci_red_check.py::test_ci_red_check_fails_on_purpose",
+    "summary": "1 failed, 313 passed, 1 deselected"
+  },
+  "green": {
+    "run_id": 39090722958,
+    "branch": "main",
+    "commit": "8d711fba0422b0bbc62f73cf218ff351000597f0",
+    "conclusion": "success",
+    "created": "2026-10-18T02:36:58Z",
+    "url": "https://github.com/OctaviusLeo/Agent-Injection-Bench/actions/runs/39090722958"
+  },
+  "recorded_with": "gh run view <id> --json databaseId,headSha,headBranch,conclusion,status,createdAt,url"
+}

@@ -377,7 +377,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Commit and push, then wait for the run on HEAD to finish (`gh run watch` or `gh run list --branch main`). It must succeed; fix and push until it does, within the retry cap.
   - _Requirements: 8.1, 8.2, 8.4, 8.5_
 
-- [ ] 6.5 Prove that CI catches a failing test
+- [x] 6.5 Prove that CI catches a failing test
   - Create branch `ci-fail-check` from `main` with one intentionally failing test (`tests/test_ci_red_check.py`), push it, and wait for its run, which must fail because of that test.
   - Save the run ids, commits, and conclusions of the red run and of the latest green `main` run to `docs/evidence/ci_red_check.json`, and commit it on `main`.
   - Delete the `ci-fail-check` branch locally and on GitHub; it is the one branch this plan may delete.
