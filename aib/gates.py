@@ -325,7 +325,7 @@ REPORT_SECTIONS = ("## Question", "## Setup", "## Results", "## Limitations", "#
 README_SECTIONS = ("```mermaid", "## Run it", "[docs/REPORT.md](docs/REPORT.md)", "`bash scripts/test_unit.sh`",
                    "`uv run --frozen python scripts/ci_smoke.py`", "`bash scripts/run_benchmark.sh <model key>`",
                    "`bash scripts/run_all_local.sh`", "`bash scripts/build_results.sh`", "## Known limitations",
-                   "## Safety and scope", "All tools are simulated", "This repository is private.")
+                   "## Safety and scope", "All tools are simulated", "[MIT License](LICENSE)", "[THIRD_PARTY.md](THIRD_PARTY.md)")
 
 
 def check_m5(root: Path = REPO_ROOT) -> list[str]:

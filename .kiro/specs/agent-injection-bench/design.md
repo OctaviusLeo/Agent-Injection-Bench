@@ -739,7 +739,7 @@ Unit tests cover concrete examples and edge cases; Hypothesis covers the eleven 
 - **`docs/ENVIRONMENT.md` (Req 0.5, 0.6):** every version with an artifact from the target machine (package-manager query, documentation for that version, or a passing test).
 - **`THIRD_PARTY.md` (Req 0.7, 0.8, 1.3):** AgentDojo (MIT, reuse mode: pinned package plus the attack templates and defense text named above), InjecAgent (MIT, the attack sentence), the two models, the classifier, llama.cpp, and every Python package with versions and license identifiers.
 - **Coverage and single test command (Req 0.11):** above.
-- **Private repository (Req 0.12):** no public license, package, or release; the README says so.
+- **License and visibility (Req 0.12):** the repository stays private on GitHub with no published package or release. On 2026-10-18 the owner directed otherwise on licensing (commit `d0cf7d2`, "Add MIT license"): the project's own code is MIT, third-party packages, models, and images keep their own licenses and are not redistributed, and the README says so instead of "no public license".
 - **Simulated only (Req 0.14) and payload restraint (Req 0.15, 0.16):** above.
 
 ### Autonomous execution and owner inputs

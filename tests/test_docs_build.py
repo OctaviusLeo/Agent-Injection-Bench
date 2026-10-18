@@ -24,7 +24,8 @@ def test_readme_renders_every_required_section_and_traces(tmp_path):
     text = render((root / "docs" / "README.template.md").read_text(), DB.build_context(root, STAMP))
     for s in SECTIONS:
         assert s in text
-    assert "This repository is private." in text and "[docs/REPORT.md](docs/REPORT.md)" in text
+    assert "[MIT License](LICENSE)" in text and "[docs/REPORT.md](docs/REPORT.md)" in text
+    assert "## How this was built" in text  # the owner's section is carried through generation
     assert "`bash scripts/test_unit.sh`" in text and "`uv run --frozen python scripts/ci_smoke.py`" in text
     assert "`bash scripts/run_all_local.sh`" in text and "`bash scripts/build_results.sh`" in text
     assert "All tools are simulated" in text and "Responsible disclosure" in text
