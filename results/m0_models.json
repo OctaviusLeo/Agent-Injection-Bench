@@ -1,0 +1,118 @@
+{
+  "stamp": {
+    "command": "python scripts/fetch_models.py",
+    "seed": 0,
+    "commit": "7a4cf848ba12b214970cab5126ee1239f4d9dcda"
+  },
+  "models_dir": "~/aib-models",
+  "entries": {
+    "qwen3-4b": {
+      "repo": "unsloth/Qwen3-4B-Instruct-2507-GGUF",
+      "revision": "a06e946bb6b655725eafa393f4a9745d460374c9",
+      "files": [
+        {
+          "name": "Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+          "path": "~/aib-models/qwen3-4b/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+          "size": 2497281120,
+          "expected_size": 2497281120,
+          "size_ok": true,
+          "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+          "expected_sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+          "sha256_ok": true
+        }
+      ]
+    },
+    "llama3.1-8b": {
+      "repo": "bartowski/Meta-Llama-3.1-8B-Instruct-GGUF",
+      "revision": "bf5b95e96dac0462e2a09145ec66cae9a3f12067",
+      "files": [
+        {
+          "name": "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+          "path": "~/aib-models/llama3.1-8b/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+          "size": 4920739232,
+          "expected_size": 4920739232,
+          "size_ok": true,
+          "sha256": "7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c",
+          "expected_sha256": "7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c",
+          "sha256_ok": true
+        }
+      ]
+    },
+    "classifier": {
+      "repo": "protectai/deberta-v3-base-prompt-injection-v2",
+      "revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+      "files": [
+        {
+          "name": "config.json",
+          "path": "~/aib-models/classifier/config.json",
+          "size": 994,
+          "expected_size": 994,
+          "size_ok": true,
+          "sha256": "05079f4735092040b780d459027afab413faa6eeb66a548571a58832304b60bb",
+          "expected_sha256": null,
+          "sha256_ok": true
+        },
+        {
+          "name": "model.safetensors",
+          "path": "~/aib-models/classifier/model.safetensors",
+          "size": 737719272,
+          "expected_size": 737719272,
+          "size_ok": true,
+          "sha256": "6521cb8d0ac08148c81464899c424e6148fcc62befa371089fa4061d8b6e0424",
+          "expected_sha256": "6521cb8d0ac08148c81464899c424e6148fcc62befa371089fa4061d8b6e0424",
+          "sha256_ok": true
+        },
+        {
+          "name": "tokenizer.json",
+          "path": "~/aib-models/classifier/tokenizer.json",
+          "size": 8656744,
+          "expected_size": 8656744,
+          "size_ok": true,
+          "sha256": "f0a66ad0d735d8dca9ecac4ff50fcdef4bb6adbadd2941a926844844d2c2059b",
+          "expected_sha256": null,
+          "sha256_ok": true
+        },
+        {
+          "name": "tokenizer_config.json",
+          "path": "~/aib-models/classifier/tokenizer_config.json",
+          "size": 1284,
+          "expected_size": 1284,
+          "size_ok": true,
+          "sha256": "557b3d33d3f41b81ad769244e506549e98a1857d41dd58160aacd4d98d710b5a",
+          "expected_sha256": null,
+          "sha256_ok": true
+        },
+        {
+          "name": "special_tokens_map.json",
+          "path": "~/aib-models/classifier/special_tokens_map.json",
+          "size": 286,
+          "expected_size": 286,
+          "size_ok": true,
+          "sha256": "9463f61e1b109a8eb4688b829260d7c6b1e6dff04c98ff7269bb89e2b92369b9",
+          "expected_sha256": null,
+          "sha256_ok": true
+        },
+        {
+          "name": "added_tokens.json",
+          "path": "~/aib-models/classifier/added_tokens.json",
+          "size": 23,
+          "expected_size": 23,
+          "size_ok": true,
+          "sha256": "dc046d04c9b0ada7ae6f1dc89c465801799acdf0c9a6aab8c15a1b2d5ca4e91f",
+          "expected_sha256": null,
+          "sha256_ok": true
+        },
+        {
+          "name": "spm.model",
+          "path": "~/aib-models/classifier/spm.model",
+          "size": 2464616,
+          "expected_size": 2464616,
+          "size_ok": true,
+          "sha256": "c679fbf93643d19aab7ee10c0b99e460bdbc02fedf34b92b05af343b4af586fd",
+          "expected_sha256": "c679fbf93643d19aab7ee10c0b99e460bdbc02fedf34b92b05af343b4af586fd",
+          "sha256_ok": true
+        }
+      ]
+    }
+  }
+}

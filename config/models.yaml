@@ -1,7 +1,7 @@
 # Models under test (design.md "Models"). Revisions and sizes from the Hugging Face API, read 2026-10-17;
 # sha256 is the LFS object id of the pinned revision and is checked after download.
 server:
-  image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580@sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00
   compose_project: aib
   service: llm
   host_port: 8091

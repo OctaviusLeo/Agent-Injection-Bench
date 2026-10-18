@@ -1,0 +1,9 @@
+image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b11580
+repo_digest: ghcr.io/ggml-org/llama.cpp@sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00
+image_id: sha256:c4348afb91499b10fad12f92626c7a8ca8b69d6475d10c793b810cb61237ce00
+created: 2026-10-13T06:18:18.901978128Z
+entrypoint: ["/app/llama-server"]
+recorded: 2026-10-18T01:09:33Z with docker 29.9.1
+--- llama-server --version
+version: 0.6.0-dev (build 11580, commit 4413a1924)
+built with GNU 14.2.0 for Linux x86_64
