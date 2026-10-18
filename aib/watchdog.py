@@ -66,6 +66,7 @@ class JobControl:
         self.root, self.name, self.command = root, name, command
         self.logs = root / "runs" / "logs"
         self.child: subprocess.Popen | None = None
+        self.launches = 0
 
     @property
     def unit(self) -> str:
@@ -79,19 +80,25 @@ class JobControl:
 
     def launch(self, method: str, workers: int | None) -> None:
         self.logs.mkdir(parents=True, exist_ok=True)
+        self.launches += 1
+        log = self.logs / f"{self.name}.log"
+        if log.exists():  # bg.sh truncates the log: keep the previous attempt's copy
+            log.replace(self.logs / f"{self.name}.before-attempt{self.launches}.log")
         for suffix in ("exit", "pid"):
             (self.logs / f"{self.name}.{suffix}").unlink(missing_ok=True)
         cmd = [*self.command, *(["--workers", str(workers)] if workers is not None else [])]
         wrapper = self.wrapper(cmd)
-        log = self.logs / f"{self.name}.log"
         if method == "bg":
             subprocess.run(["bash", "scripts/bg.sh", self.name, *cmd], cwd=self.root, check=True, capture_output=True)
         elif method == "systemd":
             subprocess.run(["systemctl", "--user", "reset-failed", self.unit], capture_output=True)
+            # user units start with a minimal PATH (no /usr/lib/wsl/lib, so no nvidia-smi) and without the docker
+            # group, so pass this process's PATH and run under `sg docker`
             subprocess.run(["systemd-run", "--user", f"--unit={self.unit}", "--collect", "--quiet",
-                            f"--working-directory={self.root}", f"--property=StandardOutput=append:{log}",
-                            f"--property=StandardError=append:{log}", *wrapper], cwd=self.root, check=True,
-                           capture_output=True)
+                            f"--working-directory={self.root}", f"--setenv=PATH={os.environ.get('PATH', '')}",
+                            f"--setenv=HOME={os.environ.get('HOME', '')}", f"--property=StandardOutput=append:{log}",
+                            f"--property=StandardError=append:{log}", "sg", "docker", "-c",
+                            " ".join(shlex.quote(a) for a in wrapper)], cwd=self.root, check=True, capture_output=True)
         elif method == "tmux":
             session = self.unit
             subprocess.run(["tmux", "kill-session", "-t", session], capture_output=True)
@@ -179,7 +186,7 @@ class Watchdog:
         """Poll one attempt until it ends; return 'done', 'exit:<n>', 'lost', 'stalled', 'unhealthy', or 'slow'."""
         last_count, last_change = attempt.done_at_start, self.clock()
         window_start, window_count = self.clock(), attempt.done_at_start
-        bad_health = 0
+        bad_health, seen_healthy = 0, False
         while True:
             self.sleep(self.poll_s)
             obs = self.observe()
@@ -192,7 +199,8 @@ class Watchdog:
                 return "lost"
             if now - last_change >= self.stall_s:
                 return "stalled"
-            bad_health = bad_health + 1 if obs.healthy is False else 0
+            seen_healthy = seen_healthy or obs.healthy is True
+            bad_health = bad_health + 1 if (obs.healthy is False and seen_healthy) else 0
             if bad_health >= self.unhealthy_polls:
                 return "unhealthy"
             if now - window_start >= self.slow_window_s:

@@ -87,10 +87,17 @@ def test_stall_is_detected_and_escalates_to_systemd_with_one_worker():
     assert s.launches[2] == ("systemd", 1) and s.stops == 2
 
 
-def test_unhealthy_server_triggers_restart():
-    s = Script([[(R, None, i, False) for i in range(1, 10)], [("DONE", 0, 100, None)]])
+def test_unhealthy_server_triggers_restart_only_after_it_was_healthy():
+    s = Script([[(R, None, 1, True)] + [(R, None, i, False) for i in range(2, 10)], [("DONE", 0, 100, None)]])
     dog, _ = _dog(s)
     assert dog.run()[0] and dog.attempts[0].outcome == "unhealthy"
+
+
+def test_start_up_and_gpu_wait_are_not_unhealthy():
+    starting = [(R, None, 0, False)] * 20 + [(R, None, 5, True), ("DONE", 0, 100, None)]  # 20 min loading or waiting
+    s = Script([starting])
+    dog, _ = _dog(s)
+    assert dog.run() == (True, "complete after 1 attempt(s)") and s.stops == 0
 
 
 def test_slowdown_triggers_restart():
@@ -192,6 +199,16 @@ def test_real_launch_reports_exit_codes(tree, method):
     job.launch(method, 0)  # appends "--workers 0": the command exits with the last argument
     assert _wait_done(job) == 0
     assert job.pid() is not None
+
+
+def test_each_attempt_keeps_the_previous_log(tree):
+    job = W.JobControl(tree, "t_logs", ["bash", "-c", "echo attempt-output"])
+    job.launch("child", None)
+    _wait_done(job)
+    job.launch("child", None)
+    _wait_done(job)
+    kept = tree / "runs" / "logs" / "t_logs.before-attempt2.log"
+    assert kept.exists() and "attempt-output" in kept.read_text()
 
 
 def test_real_stop_kills_the_tree_and_state_becomes_lost(tree):
