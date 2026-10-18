@@ -152,7 +152,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Record in `docs/ENVIRONMENT.md`: the Spend_Cap ($3.00 per month), the hosted model, the accepted parameters, and the `openai` package version. Fill the hosted line of design.md's "M0 outcome" block.
   - _Requirements: 1.11, 5.2, 0.9, 0.13_
 
-- [ ] 1.6 **Automated gate (M0):** run `bash scripts/verify_m0.sh`, which runs `bash scripts/test_unit.sh` and checks:
+- [x] 1.6 **Automated gate (M0):** run `bash scripts/verify_m0.sh`, which runs `bash scripts/test_unit.sh` and checks:
   - `results/m0_models.json` lists every model file with matching size and a SHA-256, and a stamp with a 40-character commit;
   - for each Local_Model in use: `results/m0_smoke_<key>.json` shows Python ≥ 3.11, Docker working, a non-empty response, and a peak MiB at or below the total MiB; `results/m0_tool_probe_<key>.json` shows a parsed tool call;
   - `results/m0_hosted_check.json` shows a non-empty response and a tool call, and the ledger total is at or below `spend_cap_usd`;
