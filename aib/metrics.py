@@ -350,9 +350,11 @@ def run_facts(stores: dict, hosted_run_path: Path) -> dict:
     }
     if hosted_run_path.exists():
         h = json.loads(hosted_run_path.read_text(encoding="utf-8"))
-        facts["hosted"] = {"spend_usd": f"{h['spend_usd']:.4f}", "spend_cap_usd": f"{h['spend_cap_usd']:.2f}",
-                           "stopped_at_cap": h["stopped_at_cap"], "completed_cases": h["completed_cases"],
-                           "planned_cases": h["planned_cases"]}
+        spend, cap = h.get("spend_usd"), h.get("spend_cap_usd")
+        facts["hosted"] = {"spend_usd": None if spend is None else f"{spend:.4f}",
+                           "spend_cap_usd": None if cap is None else f"{cap:.2f}",
+                           "stopped_at_cap": h.get("stopped_at_cap"), "completed_cases": h.get("completed_cases"),
+                           "planned_cases": h.get("planned_cases")}
     return facts
 
 

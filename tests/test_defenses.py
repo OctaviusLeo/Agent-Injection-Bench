@@ -78,7 +78,7 @@ def test_filter_records_one_decision_per_output_and_replaces_flagged(tmp_path):
                   classifier=KeywordClassifier())
     tool_msgs = [m for m in tr["messages"] if m["role"] == "tool"]
     decisions = r.filter_decisions
-    assert len(decisions) == len(tool_msgs) == len(tr["tool_outputs"]) >= 2
+    assert len(decisions) == len(tool_msgs) == len(tr["tool_outputs"]) == r.n_tool_outputs >= 2
     for d, raw, msg in zip(decisions, tr["tool_outputs"], tool_msgs):
         injected_truth = "TODO:" in raw["raw"]
         assert d["injected"] == injected_truth

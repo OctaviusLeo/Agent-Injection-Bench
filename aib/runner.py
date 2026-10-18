@@ -79,6 +79,7 @@ class CaseResult:
     injection_check_value: bool | None = None  # the predicate's value even when unclassified (not used in rates)
     malformed_args: int = 0
     response_models: list[str] = field(default_factory=list)
+    n_tool_outputs: int = 0  # tool outputs the case produced (every one is screened under `filter`)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -188,4 +189,5 @@ def run_case(spec: CaseSpec, llm: BasePipelineElement, classifier=None, ctx: Run
         trace_path=trace_path, stamp=dict(ctx.stamp), error_kind=error_kind, injection_check_value=check_value,
         malformed_args=sum(len(c.get("malformed_args") or []) for c in calls),
         response_models=sorted({c["response_model"] for c in calls if c.get("response_model")}),
+        n_tool_outputs=len(extra_args.get("aib_tool_outputs", [])),
     )
