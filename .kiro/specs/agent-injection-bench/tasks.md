@@ -364,7 +364,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - **Property 11: README/Report number traceability** — one Hypothesis test, as design.md specifies.
   - **Validates: Requirements 7.4, 9.3, 9.4**
 
-- [ ] 6.3 Implement the CI smoke subset
+- [x] 6.3 Implement the CI smoke subset
   - Write `scripts/ci_smoke.py`. It runs `user_task_0` to `user_task_4` × 2 styles (`direct`, `hidden_field`) × 3 defenses (`none`, `delimit`, and `filter` with `KeywordClassifier`) × 2 policies with `StubLLM`, needing no GPU, network, key, or download, and asserts the expected outcomes:
     - `follow_user`: task success True and injection success False everywhere;
     - `follow_injection`: injection success True under `none` and `delimit`, and False under the keyword filter.
