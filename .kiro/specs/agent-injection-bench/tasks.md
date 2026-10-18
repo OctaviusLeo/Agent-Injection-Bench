@@ -90,7 +90,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - From PowerShell: if the folder is not a Git repository, run `git init -b main`; otherwise keep its current branch. Set `origin` to `https://github.com/OctaviusLeo/Agent-Injection-Bench.git` (the owner made it private and it is empty), commit, and `git push -u origin HEAD`.
   - _Requirements: 0.5, 0.7, 0.9, 0.10, 0.11, 0.12_
 
-- [ ] 0.2 Implement the shared reproducibility helper
+- [x] 0.2 Implement the shared reproducibility helper
   - Rewrite `aib/repro.py` to design.md's interface: `commit_hash()` raises unless `git rev-parse HEAD` gives 40 hex characters (the earlier version returned 40 zeros when there was no commit, which would stamp a fake hash), `require_clean()` with design.md's allowed paths, the `Stamp` dataclass `{command, seed, commit}`, and `make_stamp()`. Every result-writing script uses them.
   - Unit tests: the hash is 40 hex characters; `require_clean()` in a throwaway repository in a temporary directory accepts a change under `results/` and refuses one under `aib/`, listing the path; a stamp round-trips through JSON.
   - _Requirements: 0.1, 0.2_

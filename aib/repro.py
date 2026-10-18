@@ -1,69 +1,101 @@
-"""Reproducibility helper: stamp every reported number with its generating
-command, seed, and the full 40-character git commit hash (Req 0.1).
+"""Reproducibility helper: every reported number carries its command, seed, and commit (Req 0.1, 0.2).
 
-Sentinel behavior
------------------
-`commit_hash()` shells out to ``git rev-parse HEAD``. When the repository has
-no commits yet (``git rev-parse`` exits non-zero) or git is otherwise
-unavailable, there is no commit to record. Rather than crashing, this module
-returns a documented sentinel of 40 zero characters (``"0" * 40``). This keeps
-the 40-hex *shape* contract stable for downstream serialization and tests while
-making it obvious that no real commit was captured.
+`commit_hash()` returns the full 40-character hash of HEAD and raises when there is none, so a
+result can never be stamped with a placeholder. `require_clean()` refuses to run when the working
+tree has changes outside the generated-output paths, so every stamped number comes from committed
+code. Both use only the two read-only Git commands the execution environment allows.
 """
 
 from __future__ import annotations
 
-import json
+import re
 import subprocess
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
-#: Documented sentinel returned when no git commit is available (e.g. a repo
-#: with no commits yet). Preserves the 40-character shape of a real hash.
-NO_COMMIT_SENTINEL: str = "0" * 40
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+ALLOWED_DIRTY: tuple[str, ...] = (
+    "results/",
+    "runs/",
+    "docs/ENVIRONMENT.md",
+    "docs/evidence/",
+    "docs/BLOCKERS.md",
+    "docs/REPORT.md",
+    "README.md",
+    ".kiro/",
+)
+
+_HEX40 = re.compile(r"\A[0-9a-f]{40}\Z")
 
 
-def commit_hash() -> str:
-    """Return the current 40-hex git commit hash.
+class ReproError(RuntimeError):
+    """Raised when there is no real commit to stamp or the tree has uncommitted code changes."""
 
-    Returns :data:`NO_COMMIT_SENTINEL` (40 zeros) when ``git rev-parse HEAD``
-    fails because the repo has no commits yet or git is unavailable.
-    """
+
+def _git(args: list[str], cwd: Path | str | None) -> str:
     try:
         out = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True,
+            ["git", *args], cwd=str(cwd or REPO_ROOT), capture_output=True, text=True, check=True
         )
-    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
-        return NO_COMMIT_SENTINEL
+    except FileNotFoundError as exc:
+        raise ReproError("git is not installed") from exc
+    except subprocess.CalledProcessError as exc:
+        raise ReproError(f"git {' '.join(args)} failed: {exc.stderr.strip()}") from exc
+    return out.stdout
 
-    commit = out.stdout.strip()
-    if len(commit) != 40:
-        return NO_COMMIT_SENTINEL
-    return commit
+
+def commit_hash(cwd: Path | str | None = None) -> str:
+    """Return `git rev-parse HEAD`; raise ReproError unless it is 40 lowercase hex characters."""
+    value = _git(["rev-parse", "HEAD"], cwd).strip()
+    if not _HEX40.match(value):
+        raise ReproError(f"git rev-parse HEAD did not return a 40-character hash: {value!r}")
+    return value
+
+
+def _porcelain_paths(output: str) -> list[str]:
+    paths = []
+    for line in output.splitlines():
+        if len(line) < 4:
+            continue
+        path = line[3:]
+        if " -> " in path:  # rename: check both sides
+            old, new = path.split(" -> ", 1)
+            paths.extend([old.strip('"'), new.strip('"')])
+        else:
+            paths.append(path.strip('"'))
+    return paths
+
+
+def _is_allowed(path: str, allowed: tuple[str, ...]) -> bool:
+    return any(path == a or (a.endswith("/") and path.startswith(a)) for a in allowed)
+
+
+def require_clean(allowed: tuple[str, ...] = ALLOWED_DIRTY, cwd: Path | str | None = None) -> str:
+    """Raise ReproError listing every changed path outside `allowed`; otherwise return commit_hash()."""
+    status = _git(["--no-optional-locks", "status", "--porcelain"], cwd)
+    offending = sorted({p for p in _porcelain_paths(status) if not _is_allowed(p, allowed)})
+    if offending:
+        raise ReproError("uncommitted changes outside generated paths (commit first): " + ", ".join(offending))
+    return commit_hash(cwd)
 
 
 @dataclass(frozen=True)
 class Stamp:
-    """Provenance stamp for a Measured_Value."""
+    """Provenance of a Measured_Value: the generating command, its seed, and the full commit hash."""
 
     command: str
     seed: int
     commit: str
 
+    def to_dict(self) -> dict:
+        return asdict(self)
 
-def stamp(command: str, seed: int) -> Stamp:
-    """Capture the generating ``command`` and ``seed`` with the current commit."""
-    return Stamp(command=command, seed=seed, commit=commit_hash())
-
-
-def serialize(stamp: Stamp) -> str:
-    """Serialize a :class:`Stamp` to a JSON string."""
-    return json.dumps(asdict(stamp), sort_keys=True)
+    @classmethod
+    def from_dict(cls, data: dict) -> "Stamp":
+        return cls(command=str(data["command"]), seed=int(data["seed"]), commit=str(data["commit"]))
 
 
-def deserialize(data: str) -> Stamp:
-    """Reconstruct a :class:`Stamp` from a JSON string produced by :func:`serialize`."""
-    obj = json.loads(data)
-    return Stamp(command=obj["command"], seed=int(obj["seed"]), commit=obj["commit"])
+def make_stamp(command: str, seed: int, cwd: Path | str | None = None) -> Stamp:
+    """Stamp `command` and `seed` with the current commit (raises when there is no commit)."""
+    return Stamp(command=command, seed=int(seed), commit=commit_hash(cwd))
