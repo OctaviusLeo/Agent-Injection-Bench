@@ -35,9 +35,9 @@ def model_colors(models: list[str]) -> dict[str, str]:
     return {m: MODEL_COLORS.get(m, OTHER) for m in models}
 
 
-def _legend(ax, colors: dict[str, str]) -> None:
+def _legend(ax, colors: dict[str, str], loc: str = "upper right") -> None:
     handles = [Patch(facecolor=c, edgecolor=SURFACE, label=m) for m, c in colors.items()]
-    ax.legend(handles=handles, frameon=False, fontsize=9, labelcolor=INK, loc="upper right")
+    ax.legend(handles=handles, frameon=False, fontsize=9, labelcolor=INK, loc=loc)
 
 
 def _ordered_models(metrics: dict) -> list[str]:
@@ -115,7 +115,7 @@ def plot_defense_cost(metrics: dict, path: Path) -> Path:
         ax.axhline(0, color=INK_2, linewidth=1)
     limit = min(1.0, round(extent * 1.15 + 0.005, 2))
     axes[0].set_ylim(-limit, limit)
-    _legend(axes[1], colors)
+    _legend(axes[1], colors, loc="lower right")  # the lower half of the symmetric cost axis is empty
     fig.suptitle("Task-success cost of each defense (paired 95% CI)", color=INK, fontsize=11, x=0.01, ha="left")
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
