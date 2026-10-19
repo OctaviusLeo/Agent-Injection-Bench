@@ -38,6 +38,11 @@ LIMITATIONS = (
     "- **The tool-permission-limit defense is not implemented.** It needs a per-task allowed-tool list that AgentDojo "
     "does not provide.",
     "- **Fixed filter threshold** of {threshold}; precision and recall at other thresholds are not explored.",
+    "- **An AgentDojo executor crash counts as errored.** `ToolsExecutor` in `agentdojo` `0.1.35` runs `literal_eval` on "
+    "every string argument and catches only `ValueError` and `SyntaxError`, so an argument such as `{{{{'a'}}}}` raises "
+    "`TypeError: unhashable type` and ends the case. The runner records such a case as `errored` with that cause, as for "
+    "any per-case failure; it is counted in the errored columns, and the executor was not patched mid-run, so every record "
+    "of a model comes from one commit.",
     "- **Suite deviation.** The suite includes AgentDojo's `v1.1.2` task fixes, which `get_suite` omits in `0.1.35`, so "
     "numbers are not directly comparable with results produced through that function.",
 )
