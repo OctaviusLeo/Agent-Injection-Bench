@@ -771,4 +771,5 @@ Each milestone ends in an automated gate before the next begins; failures that s
 - **Exposure-conditioned ASR.** Cases where the Agent never read the injected data are excluded from the ASR denominator; exposure rates are reported beside every ASR.
 - **The tool-permission-limit defense is not implemented.**
 - **Fixed filter threshold** of 0.5; precision and recall at other thresholds are not explored.
+- **An AgentDojo executor crash counts as errored.** `ToolsExecutor` in `agentdojo` 0.1.35 runs `literal_eval` on every string argument (`is_string_list`) and catches only `ValueError` and `SyntaxError`, so an argument such as `{{'a'}}` raises `TypeError: unhashable type` and ends the case. The runner records such a case as `errored` with that cause, as for any per-case failure; it is reported in the errored counts, and the executor was not patched mid-run so every record of a model comes from one commit.
 - **Suite deviation.** The suite includes AgentDojo's v1.1.2 task fixes, which `get_suite("v1.2.2")` in 0.1.35 omits, so numbers are not directly comparable with results produced through that function.

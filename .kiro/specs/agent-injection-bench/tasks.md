@@ -291,7 +291,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - The run writes `results/raw/qwen3-4b.jsonl` (a header plus 2,880 records). Commit the store when it is complete.
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 0.1_
 
-- [ ] 4.7 Run the full benchmark on the second Local_Model
+- [x] 4.7 Run the full benchmark on the second Local_Model
   - Same as task 4.6 for `llama3.1-8b`, or for the model task 1.4 enabled in its place, writing `results/raw/<key>.jsonl` (a header plus 2,880 records). Commit the store when it is complete.
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 0.1_
 
