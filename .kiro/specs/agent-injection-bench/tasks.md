@@ -399,7 +399,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Commit, then run `bash scripts/build_results.sh`; the traceability check must pass.
   - _Requirements: 9.1, 9.2, 9.3, 9.5, 0.11, 0.12, 0.15, 0.16_
 
-- [ ] 6.7 **Automated gate (end to end):** run `bash scripts/verify_m5.sh`, which runs `bash scripts/test_unit.sh` and `scripts/check_traceability.py`, and checks:
+- [x] 6.7 **Automated gate (end to end):** run `bash scripts/verify_m5.sh`, which runs `bash scripts/test_unit.sh` and `scripts/check_traceability.py`, and checks:
   - running `bash scripts/build_results.sh` again gives identical `results/summary.md`, `docs/REPORT.md`, and `README.md` apart from stamps;
   - `docs/REPORT.md` has the five sections and states the temperature, top-p, and Repetitions;
   - `README.md` has every section task 6.6 lists;

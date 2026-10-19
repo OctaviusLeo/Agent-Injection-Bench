@@ -2,7 +2,7 @@
   "stamp": {
     "command": "python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json",
     "seed": 20261017,
-    "commit": "8a3e4f4a95b9421be297f12bffec007cb9ab4ac2"
+    "commit": "3b26fd99020cb09a9e2fc9cfb709beb6cb0cb07f"
   },
   "settings": {
     "seed": 20261017,
