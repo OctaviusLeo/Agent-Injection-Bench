@@ -334,12 +334,12 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Commit the store and the ledger.
   - _Requirements: 5.2, 5.3, 5.4, 5.5, 0.1, 0.9_
 
-- [ ] 5.5 Generate the metrics, the Results_Table, and the plots
+- [x] 5.5 Generate the metrics, the Results_Table, and the plots
   - Write the first part of `scripts/build_results.sh`: `require_clean`, then the metrics command, the Results_Table, and the plots (task 6.6 adds the Report, README, and traceability steps). Commit, then run it.
   - Run the metrics command a second time into `runs/` and confirm the two `metrics.json` files are equal apart from the stamp (Req 6.6).
   - _Requirements: 6.6, 6.7, 7.3, 0.1, 0.3_
 
-- [ ] 5.6 **Automated gate (M4):** run `bash scripts/verify_m4.sh`, which runs `bash scripts/test_unit.sh` and checks:
+- [x] 5.6 **Automated gate (M4):** run `bash scripts/verify_m4.sh`, which runs `bash scripts/test_unit.sh` and checks:
   - the hosted store holds only cases from the hosted grid, each case id at most once, with complete Repetitions or a recorded Spend_Cap stop;
   - the ledger total is at or below `spend_cap_usd`;
   - `results/metrics.json` covers every Cell present in the stores, each rate with an interval that brackets it or `not computed` with a cause;
@@ -383,7 +383,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Delete the `ci-fail-check` branch locally and on GitHub; it is the one branch this plan may delete.
   - _Requirements: 8.4_
 
-- [ ] 6.6 Generate the README and finish the build command
+- [x] 6.6 Generate the README and finish the build command
   - Write `docs/README.template.md` and `aib/docs_build.py`, and complete `scripts/build_results.sh` so that it regenerates, in order, `results/metrics.json`, `results/summary.md`, the plots, `docs/REPORT.md`, and `README.md`, then runs `scripts/check_traceability.py`.
   - The README holds:
     - an architecture diagram;
