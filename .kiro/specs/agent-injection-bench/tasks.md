@@ -295,7 +295,7 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - Same as task 4.6 for `llama3.1-8b`, or for the model task 1.4 enabled in its place, writing `results/raw/<key>.jsonl` (a header plus 2,880 records). Commit the store when it is complete.
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 0.1_
 
-- [ ] 4.8 **Automated gate (M3):** run `bash scripts/verify_m3.sh`, which runs `bash scripts/test_unit.sh` and checks:
+- [x] 4.8 **Automated gate (M3):** run `bash scripts/verify_m3.sh`, which runs `bash scripts/test_unit.sh` and checks:
   - each Local_Model's store has a header with a 40-character commit, the full grid's 2,880 case ids exactly once, and valid statuses;
   - errored cases are at most 5% per model. Above that, the agent looks for a harness cause and fixes it within the retry cap, discarding and rerunning that model's store as design.md requires; it never relabels cases;
   - every `filter` case has a decision for every screened output;
