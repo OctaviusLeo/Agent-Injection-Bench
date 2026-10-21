@@ -8,6 +8,7 @@ import pytest
 from agentdojo.agent_pipeline.base_pipeline_element import BasePipelineElement
 
 from aib import defenses as D
+from aib.goals import get_goal, goal_for
 from aib.llm import ChatLLM, Sampling
 from aib.runner import CaseSpec, RunContext, run_case, trace_file
 from aib.stub_model import StubLLM
@@ -42,6 +43,16 @@ def test_answer_only_is_unclassified_not_exposed():
     assert r.injection_success is None and r.injection_check_value is False and r.tool_calls == []
     # user_task_0 is read-only: its check looks only at the answer, and the ground-truth answer passes it
     assert r.task_success is True and r.unmet is None
+
+
+def test_predicate_error_is_recorded_on_the_case(monkeypatch):
+    ok = run_case(_spec(), StubLLM("follow_user"), ctx=CTX)
+    assert ok.security_check_error is None
+    goal = get_goal(goal_for("user_task_0"))
+    monkeypatch.setattr(type(goal), "security_from_traces", lambda self, *a: None)
+    monkeypatch.setattr(type(goal), "security", lambda self, *a: 1 / 0)
+    r = run_case(_spec(), StubLLM("follow_user"), ctx=CTX)
+    assert r.injection_success is False and r.security_check_error == "ZeroDivisionError: division by zero"
 
 
 class Boom(BasePipelineElement):

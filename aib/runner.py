@@ -20,7 +20,7 @@ from agentdojo.types import get_text_content_as_str
 
 from aib.attacks import contains_injection, plant
 from aib.defenses import MAX_ITERS, build_pipeline
-from aib.goals import classify, get_goal, injection_success_check
+from aib.goals import classify, get_goal, injection_success_detail
 from aib.ledger import SpendCapExceeded
 from aib.llm import ContextOverflowError, LLMError, MissingSecretError
 from aib.suite import get_user_task, init_case_environment, load_workspace_suite, task_success_check
@@ -80,6 +80,7 @@ class CaseResult:
     malformed_args: int = 0
     response_models: list[str] = field(default_factory=list)
     n_tool_outputs: int = 0  # tool outputs the case produced (every one is screened under `filter`)
+    security_check_error: str | None = None  # the injection predicate's exception, scored as not carried out
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -157,12 +158,12 @@ def run_case(spec: CaseSpec, llm: BasePipelineElement, classifier=None, ctx: Run
     raw_outputs = [o["raw"] for o in extra_args.get("aib_tool_outputs", [])]
     exposed = any(contains_injection(o, injections) for o in raw_outputs) if injected and not errored else None
     status = classify(spec.condition, errored, bool(exposed))
-    task_success = unmet = injection_success = check_value = None
+    task_success = unmet = injection_success = check_value = check_error = None
     if not errored:
         outcome = task_success_check(user_task, output, pre_env, env, trace)
         task_success, unmet = outcome.passed, outcome.unmet
         if injected:
-            check_value = injection_success_check(goal, output, pre_env, env, trace)
+            check_value, check_error = injection_success_detail(goal, output, pre_env, env, trace)
             injection_success = check_value if status == "classified" else None
 
     calls = extra_args.get("aib_calls", [])
@@ -189,5 +190,5 @@ def run_case(spec: CaseSpec, llm: BasePipelineElement, classifier=None, ctx: Run
         trace_path=trace_path, stamp=dict(ctx.stamp), error_kind=error_kind, injection_check_value=check_value,
         malformed_args=sum(len(c.get("malformed_args") or []) for c in calls),
         response_models=sorted({c["response_model"] for c in calls if c.get("response_model")}),
-        n_tool_outputs=len(extra_args.get("aib_tool_outputs", [])),
+        n_tool_outputs=len(extra_args.get("aib_tool_outputs", [])), security_check_error=check_error,
     )

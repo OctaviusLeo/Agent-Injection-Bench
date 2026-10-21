@@ -61,3 +61,11 @@ def test_classify_returns_each_status():
     assert G.classify("hidden_field", errored=False, exposed=False) == "unclassified_not_exposed"
     assert G.classify("fake_system", errored=False, exposed=True) == "classified"
     assert set(G.STATUSES) == {"errored", "clean", "unclassified_not_exposed", "classified"}
+
+
+def test_check_detail_names_the_predicate_error(monkeypatch):
+    run = S.run_ground_truth(S.get_user_task("user_task_0"))
+    goal = G.get_goal("injection_task_2")
+    assert G.injection_success_detail(goal, run.output, run.pre_env, run.post_env, run.trace)[1] is None
+    monkeypatch.setattr(type(goal), "security", lambda self, *a: 1 / 0)
+    assert G.injection_success_detail(goal, "", run.pre_env, run.post_env, []) == (False, "ZeroDivisionError: division by zero")
