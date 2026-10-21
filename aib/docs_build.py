@@ -103,6 +103,7 @@ def build_context(root: Path, stamp: dict) -> dict:
         "limitations": limitations,
         "headline": headline(metrics),
         "hosted_model": cfg.hosted.model,
+        "hosted_styles": len([c for c in cfg.hosted.conditions if c != "clean"]),
         "hosted_dates": hosted_dates(root / "results" / "hosted_ledger.jsonl", cfg.hosted.model),
         **{k: facts.get(k) for k in ("n_user_tasks", "n_styles", "n_defenses", "n_models", "n_records")},
     }
