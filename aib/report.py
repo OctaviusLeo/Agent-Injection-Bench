@@ -27,7 +27,8 @@ LIMITATIONS = (
     "- **Small local models.** Their task success can be low even without attacks, which widens intervals and limits "
     "what Defense_Cost can resolve.",
     "- **One model family locally.** Both local models are Qwen-family: Llama-3.1-8B was replaced before the benchmark "
-    "because llama.cpp could not parse the turns in which it called two tools (design.md, \"M0 outcome\"), so the local "
+    "because llama.cpp could not parse the turns in which it called two tools (the model checks are recorded in "
+    "`.kiro/specs/agent-injection-bench/design.md`), so the local "
     "comparison is across size and generation, not family.",
     "- **The hosted grid is smaller:** it covers {hosted_conditions} of the {n_conditions} conditions because of the "
     "Spend_Cap; the hosted model is an alias that can change over time, and each case records the response `model` field.",
