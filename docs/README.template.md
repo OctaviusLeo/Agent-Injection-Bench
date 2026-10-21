@@ -60,7 +60,7 @@ bash scripts/build_results.sh
 git status --short
 ```
 
-`build_results.sh` recomputes every rate and interval from the committed case records in `results/raw/` (seeded bootstrap), then regenerates the Results_Table, the plots, the Report, and this README, and checks that every number in the README and the Report appears in a generated file. Afterwards `git status` shows the regenerated files; they differ from the committed ones only in the commit hash of their stamp lines and in the PNG encoding of the plots.
+`build_results.sh` recomputes every rate and interval from the committed case records in `results/raw/` (seeded bootstrap), then regenerates the Results_Table, the plots, the Report, and this README, and checks that every number in the README and the Report appears in a generated file. Afterwards `git status` shows the regenerated files; they differ from the committed ones only in the commit hash of their stamp lines, and the plots come out byte-identical.
 
 ### Full benchmark (GPU and API key)
 
