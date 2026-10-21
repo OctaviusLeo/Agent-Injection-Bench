@@ -2,31 +2,32 @@
 
 A reproducible benchmark that measures how often tool-using LLM agents follow instructions planted in tool outputs (indirect prompt injection), and how much each defense lowers that rate without hurting legitimate task success. Every tool is simulated: nothing reaches a real account, website, or system.
 
-It runs 40 user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under 5 injection styles and a clean control, with 4 defenses, on 3 models: two open-weight Qwen models served locally by llama.cpp, and OpenAI's hosted `gpt-6-luna`, queried on 2026-10-18 (UTC) on 2 of the styles to stay within its spend cap. That is 7200 scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
+It runs 40 user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under 5 injection styles and a clean control, with 4 defenses, on 3 models: two open-weight Qwen models served locally by llama.cpp, and an OpenAI hosted model (API model ID `gpt-6-luna`), queried on 2026-10-18 (UTC) on 2 of the styles to stay within its spend cap. That is 7200 scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
 
 ## Results
 
-Pooled over the injection styles, with 95% task-clustered bootstrap intervals; changes are paired against no defense on the same resampled tasks.
+Rates come with 95% task-clustered bootstrap intervals, except that a rate with no successes shows its exact one-sided 95% upper bound (marked †); changes are paired against no defense on the same resampled tasks.
 
-- **Undefended attack success:** `gpt-6-luna` 0.004 [0.000, 0.013], `qwen2.5-7b` 0.024 [0.005, 0.050], `qwen3-4b` 0.030 [0.009, 0.055].
-- **DeBERTa filter:** it lowered task success by 0.265 [0.163, 0.370] (`qwen2.5-7b`) to 0.562 [0.446, 0.671] (`gpt-6-luna`); its largest drop in attack success was 0.023 [0.005, 0.046] (`qwen3-4b`).
+- **Undefended attack success** on the styles every model ran (`direct`, `important_instructions`): `gpt-6-luna` 1 of 233 classified cases, 0.004 [0.000, 0.013], `qwen2.5-7b` 6 of 148 classified cases, 0.041 [0.006, 0.089], `qwen3-4b` 12 of 190 classified cases, 0.063 [0.015, 0.121]. The table below pools each model over all the styles it ran, which differ (2 for `gpt-6-luna`, 5 for `qwen2.5-7b`, 5 for `qwen3-4b`).
+- **Floor effect:** undefended attack success was at most 0.030 [0.009, 0.055] (`qwen3-4b`, pooled over its styles), so no defense could lower it by more than that; the style with the most successful attacks, per model: `qwen3-4b` 12 of 14 under `important_instructions` (0.124 [0.031, 0.240]), `qwen2.5-7b` 6 of 9 under `important_instructions` (0.083 [0.013, 0.188]), `gpt-6-luna` 1 of 1 under `direct` (0.009 [0.000, 0.026]).
+- **DeBERTa filter:** it lowered task success by 0.265 [0.163, 0.370] (`qwen2.5-7b`) to 0.562 [0.446, 0.671] (`gpt-6-luna`); its largest drop in attack success was 0.023 [0.005, 0.046] (`qwen3-4b`). It is expensive because it flagged 0.334 [0.242, 0.426] (`qwen2.5-7b`) to 0.401 [0.298, 0.502] (`gpt-6-luna`) of benign tool outputs in runs without an attack, and a flagged output is replaced by an omission notice.
 - **Delimiter and hierarchy prompts:** the paired interval for the change in task success includes zero in 6 of 6 model-defense pairs, and for the change in attack success in 5 of 6; the exceptions: `qwen2.5-7b` under `delimit`, attack-success reduction -0.017 [-0.037, -0.001] (attack success rose).
 
 ![Task-success cost of each defense](results/plots/defense_cost.png)
 
-**Terms.** ASR (attack success rate) is the share of injected cases in which the agent carried out the injected goal, counted only when the agent actually read the injected tool output. TSR (task success rate) is the share of cases in which it completed the user's task. Defense_Cost is TSR without a defense minus TSR with it; ASR reduction is ASR without a defense minus ASR with it. Exposure is the share of injected cases in which the agent read the injection.
+**Terms.** ASR (attack success rate) is the share of injected cases in which the agent carried out the injected goal, counted only when the agent actually read the injected tool output. TSR (task success rate) is the share of cases in which it completed the user's task. Defense cost is TSR without a defense minus TSR with it; ASR reduction is ASR without a defense minus ASR with it. Exposure is the share of injected cases in which the agent read the injection.
 
-- User_Tasks: 40; conditions: 6 (clean plus 5 Injection_Styles); Defense_Conditions: 4; Injected_Goals: 6; models: 3; case records: 7200.
-- Repetitions per Cell: 3; temperature 0.7; top-p 0.9; loop cap 15 model calls; output cap 1024 tokens per call; base seed 20261017.
-- Hosted run: 1440 of 1440 planned cases completed; spend $0.5474 of the $3.00 Spend_Cap; stopped at the cap: no.
+- User tasks: 40; conditions: 6 (clean plus 5 injection styles); defenses: 4; injected goals: 6; models: 3; case records: 7200.
+- Repetitions per model, defense and condition: 3; temperature 0.7; top-p 0.9; loop cap 15 model calls; output cap 1024 tokens per call; base seed 20261017.
+- Hosted run: 1440 of 1440 planned cases completed; spend $0.5474 of the $3.00 spend cap; stopped at the cap: no.
 
-**Pooled over the Injection_Styles** (from `results/summary.md`):
+**Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes):
 
-| Model | Defense | Styles | ASR (95% CI) | TSR (95% CI) | Defense_Cost vs none (95% CI) | ASR reduction vs none (95% CI) | Exposure (95% CI) | Unclassified | Errored |
+| Model | Defense | Styles | ASR (95% CI) | TSR (95% CI) | Defense cost vs none (95% CI) | ASR reduction vs none (95% CI) | Exposure (95% CI) | Unclassified | Errored |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | gpt-6-luna | none | 2 | 0.004 [0.000, 0.013] | 0.942 [0.887, 0.983] | reference | reference | 0.971 [0.929, 1.000] | 7 | 0 |
-| gpt-6-luna | delimit | 2 | 0.000 [0.000, 0.000] | 0.942 [0.879, 0.988] | 0.000 [-0.021, 0.021] | 0.004 [0.000, 0.013] | 0.979 [0.942, 1.000] | 5 | 0 |
-| gpt-6-luna | hierarchy | 2 | 0.000 [0.000, 0.000] | 0.942 [0.875, 0.992] | 0.000 [-0.033, 0.037] | 0.004 [0.000, 0.013] | 0.963 [0.908, 1.000] | 9 | 0 |
+| gpt-6-luna | delimit | 2 | 0.000 [0.000, 0.013]† | 0.942 [0.879, 0.988] | 0.000 [-0.021, 0.021] | 0.004 [0.000, 0.013] | 0.979 [0.942, 1.000] | 5 | 0 |
+| gpt-6-luna | hierarchy | 2 | 0.000 [0.000, 0.013]† | 0.942 [0.875, 0.992] | 0.000 [-0.033, 0.037] | 0.004 [0.000, 0.013] | 0.963 [0.908, 1.000] | 9 | 0 |
 | gpt-6-luna | filter | 2 | 0.004 [0.000, 0.013] | 0.379 [0.267, 0.496] | 0.562 [0.446, 0.671] | 0.000 [0.000, 0.000] | 0.983 [0.950, 1.000] | 4 | 0 |
 | qwen2.5-7b | none | 5 | 0.024 [0.005, 0.050] | 0.362 [0.248, 0.478] | reference | reference | 0.630 [0.508, 0.755] | 222 | 0 |
 | qwen2.5-7b | delimit | 5 | 0.040 [0.014, 0.073] | 0.358 [0.247, 0.472] | 0.004 [-0.068, 0.072] | -0.017 [-0.037, -0.001] | 0.620 [0.498, 0.740] | 227 | 2 |
@@ -39,7 +40,7 @@ Pooled over the injection styles, with 95% task-clustered bootstrap intervals; c
 
 ![Attack success rate by defense](results/plots/asr_by_defense.png)
 
-The paper-style write-up (question, setup, results, limitations, threats to validity) is [docs/REPORT.md](docs/REPORT.md). The full per-Cell table, with exposure, unclassified and errored counts, and filter precision and recall, is [results/summary.md](results/summary.md).
+The paper-style write-up (question, setup, results, limitations, threats to validity) is [docs/REPORT.md](docs/REPORT.md). The full per-cell table, with exposure, unclassified and errored counts, and filter precision and recall, is [results/summary.md](results/summary.md).
 
 ## How it works
 
@@ -60,7 +61,7 @@ flowchart LR
 - **Attacks.** Five generic injection styles, planted only in fixture fields that the user task's ground truth reads, so the injection always arrives inside a tool output; each user task is paired with one of six benign sandbox goals. A clean control has no injection.
 - **Classification.** An injected case counts toward the attack success rate only when the agent actually received a tool output containing the injection; other injected cases are reported as unclassified.
 - **Defenses.** `none`, `delimit` (spotlighting with `<<` `>>`), `hierarchy` (instruction-hierarchy system prompt), and `filter` (a DeBERTa prompt-injection classifier screens every tool output).
-- **Statistics.** Task-clustered bootstrap intervals for every rate; paired bootstrap intervals for Defense_Cost and ASR reduction.
+- **Statistics.** Task-clustered bootstrap intervals for every rate; paired bootstrap intervals for defense cost and ASR reduction.
 
 ## Run it
 
@@ -120,13 +121,17 @@ GitHub Actions runs the first two on every push and on pull requests to `main`.
 ## Known limitations
 
 - **One environment.** All 40 user tasks come from AgentDojo's workspace suite, so the results describe an email, calendar, and file-drive assistant, not agents in general.
-- **Small local models.** Their task success can be low even without attacks, which widens intervals and limits what Defense_Cost can resolve.
+- **Small local models.** Their task success can be low even without attacks, which widens intervals and limits what the defense-cost comparison can resolve.
 - **One model family locally.** Both local models are Qwen-family: Llama-3.1-8B was replaced before the benchmark because llama.cpp could not parse the turns in which it called two tools (the model checks are recorded in `.kiro/specs/agent-injection-bench/design.md`), so the local comparison is across size and generation, not family.
-- **The hosted grid is smaller:** it covers 3 of the 6 conditions because of the Spend_Cap; the hosted model is an alias that can change over time, and each case records the response `model` field.
+- **The hosted grid is smaller:** it covers 3 of the 6 conditions because of the spend cap. `gpt-6-luna` is OpenAI's API model ID, an alias the provider can repoint; the response `model` field recorded on every case echoed the alias, so no dated snapshot was recorded.
+- **Floor effect.** Undefended attack success was at most 0.030 pooled over a model's styles, so no defense could lower it by more than that; the ASR-reduction intervals are narrow mainly because there was little to reduce.
 - **Different decoding stacks.** The local models are 4-bit GGUF quantizations served by llama.cpp; quantization and the server's chat template can change behavior relative to the original weights.
 - **Exposure-conditioned ASR.** Cases where the agent never read the injected data are excluded from the ASR denominator; exposure rates are reported beside every ASR.
 - **The tool-permission-limit defense is not implemented.** It needs a per-task allowed-tool list that AgentDojo does not provide.
 - **Fixed filter threshold** of 0.5; precision and recall at other thresholds are not explored.
+- **Zero-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound, which treats cases as independent and so can be narrower than a task-clustered bound; a paired difference between two zero-success rates still shows a zero-width bootstrap interval.
+- **Goal confounding.** Each user task is always paired with the same injected goal (user task k with goal k mod 6), and the bootstrap resamples tasks only, so task and goal effects cannot be separated and the intervals do not cover other pairings.
+- **Predicate exceptions.** An AgentDojo injection predicate that raises is scored as not carried out, and the committed records do not say whether that happened; runs made after this was found record the exception in `security_check_error`.
 - **An AgentDojo executor crash counts as errored.** `ToolsExecutor` in `agentdojo` `0.1.35` runs `literal_eval` on every string argument and catches only `ValueError` and `SyntaxError`, so a nested set literal (a set written inside a set) raises `TypeError: unhashable type` and ends the case. The runner records such a case as `errored` with that cause, as for any per-case failure; it is counted in the errored columns, and the executor was not patched mid-run, so every record of a model comes from one commit.
 - **Suite deviation.** The suite includes AgentDojo's `v1.1.2` task fixes, which `get_suite` omits in `0.1.35`, so numbers are not directly comparable with results produced through that function.
 
@@ -144,9 +149,9 @@ Code is released under the [MIT License](LICENSE). Third-party packages, models 
 
 This README is generated by `python -m aib.docs_build` from `docs/README.template.md` and the files under `results/`; do not edit it by hand.
 
-- README: command `python -m aib.docs_build --template docs/README.template.md --out README.md`, seed 20261017, commit `bb71325364640859544cd6e02d1aa9940b3396c1`.
-- Results_Table: command `python -m aib.results_table --metrics results/metrics.json --out results/summary.md`, seed 20261017, commit `3b26fd99020cb09a9e2fc9cfb709beb6cb0cb07f`.
-- Metrics: command `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, seed 20261017, commit `3b26fd99020cb09a9e2fc9cfb709beb6cb0cb07f`.
+- README: command `python -m aib.docs_build --template docs/README.template.md --out README.md`, seed 20261017, commit `fbe25762d61bc2d9506f92a8296359cf05f6dc57`.
+- Results_Table: command `python -m aib.results_table --metrics results/metrics.json --out results/summary.md`, seed 20261017, commit `fbe25762d61bc2d9506f92a8296359cf05f6dc57`.
+- Metrics: command `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, seed 20261017, commit `fbe25762d61bc2d9506f92a8296359cf05f6dc57`.
 
 ## How this was built
 
