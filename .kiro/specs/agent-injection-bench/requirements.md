@@ -68,6 +68,7 @@ This document defines the requirements only. Benchmark-or-reuse mechanics, the e
 10. THE System SHALL pin the exact version of every dependency it declares.
 11. WHERE a module contains more than one public function or exceeds 50 source lines, THE System SHALL provide unit tests achieving at least 80 percent statement coverage for that module, and THE README SHALL state the exact single command that runs those tests.
 12. THE System SHALL remain a private repository without a public license, published package, or public release until the repository owner directs otherwise.
+    - **Owner decision, 2026-10-21:** the repository was released publicly under the MIT License. This requirement is superseded.
 13. IF a required secret environment variable is unset or empty when a System component that depends on it starts, THEN THE System SHALL terminate before issuing any request that requires that secret, SHALL emit an error indicating which environment variable is missing, and SHALL exit with a non-zero exit status.
 14. THE Sandbox SHALL execute every Simulated_Tool against Sandbox state only and SHALL NOT issue any network request to a real external account, website, or system; and WHERE a Simulated_Tool models network access, it SHALL serve its response from a local fixture.
 15. WHERE the Report or README presents attack results, THE System SHALL report aggregate rates and defense effects only and SHALL NOT publish an attack payload tuned against a specific named commercial product.
