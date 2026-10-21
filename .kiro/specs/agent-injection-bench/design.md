@@ -336,11 +336,11 @@ Kiro runs every task on the owner's Windows 11 desktop with the RTX 3080.
 | Traces, caches, server logs | `~/aib-runs/` (`AIB_RUNS`); never committed |
 | Hosted API key | `~/.config/aib/secrets.env` (created by the owner, mode 600), exported by `scripts/wsl_run.sh` |
 | Docker | Docker Engine with the NVIDIA Container Toolkit inside WSL; Compose project `aib`, service `llm`, port `127.0.0.1:8097` (moved from `8091`, which another project uses) |
-| Helper scripts | `scripts/wsl_run.sh`, `scripts/bg.sh`, `scripts/bg_status.sh`, `scripts/bg_wait.sh`, written exactly as in `.kiro/steering/environment.md` |
+| Helper scripts | `scripts/wsl_run.sh`, `scripts/bg.sh`, `scripts/bg_status.sh`, `scripts/bg_wait.sh`, committed under `scripts/` (written exactly as in the owner's local environment notes, which are not part of the repository) |
 
 **Rules that keep an unattended run safe and repeatable**
 - **Commands:** run Python, Docker, and shell scripts inside WSL from PowerShell through the wrapper. Anything with `$`, pipes, `&&`, redirection, or nested quotes goes into a script under `scripts/`. Shell scripts always run as `bash scripts/<name>.sh`. Git and `gh` run only from PowerShell, except the reproducibility helper's two read-only commands. `.gitattributes` holds `* text=auto eol=lf` plus `*.png binary`.
-- **One GPU job at a time.** Only this project's model server uses the GPU, one model at a time. The idle-memory rule in `.kiro/steering/environment.md` applies before every server start. Other projects' containers are never stopped.
+- **One GPU job at a time.** Only this project's model server uses the GPU, one model at a time. The idle-memory rule recorded in `docs/ENVIRONMENT.md` ("GPU idle reading") applies before every server start. Other projects' containers are never stopped.
 - **Long jobs run detached.** Anything that may take longer than 10 minutes starts with `bash scripts/bg.sh <name> <command>` and is waited on with `bash scripts/bg_wait.sh <name>`.
 - **No `sudo`.** A missing system package is a blocker.
 - **Docker scope:** only the `aib` Compose project's containers are started, recreated, or stopped. Never `docker system prune`, `docker image prune`, `docker volume rm`, `wsl --shutdown`, or `wsl --terminate`.
