@@ -40,7 +40,7 @@ def test_defense_cost_rows_reference_none(tmp_path):
     text = R.render_summary(_fixture(tmp_path), STAMP)
     cells = [line for line in text.splitlines() if line.startswith("| qwen3-4b | none |")]
     assert cells and all("| reference |" in line for line in cells)
-    assert "Defense_Cost vs none" in text and "TSR(none) - TSR(defense)" in text
+    assert "Defense cost vs none" in text and "TSR(none) - TSR(defense)" in text
 
 
 def test_formatting_helpers():
@@ -72,3 +72,13 @@ def test_clis_write_outputs(tmp_path, monkeypatch, capsys):
     assert (tmp_path / "results" / "summary.md").read_text().startswith("# Results_Table")
     assert (tmp_path / "results" / "plots" / "defense_cost.png").stat().st_size > 0
     assert "wrote results/summary.md" in capsys.readouterr().out
+
+
+def test_zero_count_rates_are_marked_and_shared_styles_get_their_own_table(tmp_path):
+    metrics = _fixture(tmp_path)
+    metrics["cells"][1]["asr"] = M.cluster_bootstrap_rate({"a": (0, 10), "b": (0, 20)}, 1, 100).to_dict()
+    text = R.render_summary(metrics, STAMP)
+    assert "0.000 [0.000, 0.095]†" in text and R.ZERO_COUNT_NOTE in text
+    assert "## Pooled over the styles every model ran" in text and "Styles: direct." in text
+    assert "- Bootstrap diagnostics:" in text
+    assert R.diagnostics_lines(None) == []

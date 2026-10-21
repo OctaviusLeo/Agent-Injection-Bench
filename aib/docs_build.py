@@ -99,7 +99,7 @@ def build_context(root: Path, stamp: dict) -> dict:
         "metrics_command": stamps["metrics"]["command"], "metrics_seed": stamps["metrics"]["seed"],
         "metrics_commit": stamps["metrics"]["commit"],
         "run_facts": summary_section(summary, "Run facts"),
-        "pooled_table": summary_section(summary, "Pooled over the Injection_Styles"),
+        "pooled_table": summary_section(summary, "Pooled over the injection styles"),
         "limitations": limitations,
         "headline": headline(metrics),
         "hosted_model": cfg.hosted.model,

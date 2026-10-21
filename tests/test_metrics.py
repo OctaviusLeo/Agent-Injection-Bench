@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 from pathlib import Path
 
@@ -94,6 +95,54 @@ def test_empty_cell_is_not_computed_with_cause():
     assert isinstance(M.task_success_rate([rec("user_task_1", "errored")]), M.NotComputed)
     assert isinstance(M.exposure_rate([rec("user_task_0", "clean", ts=True, condition="clean")]), M.NotComputed)
     assert isinstance(M.paired_bootstrap_difference({"a": (1, 2)}, {"a": (0, 0)}, 1), M.NotComputed)
+
+
+def test_zero_success_cell_reports_the_exact_one_sided_upper_bound():
+    out = M.cluster_bootstrap_rate({"a": (0, 40), "b": (0, 77)}, seed=1, resamples=300)
+    assert (out.point, out.lower, out.successes) == (0.0, 0.0, 0)
+    assert out.upper == pytest.approx(1 - 0.05 ** (1 / 117)) and out.upper == pytest.approx(0.02528, abs=1e-5)
+    assert out.method == "exact-upper-95-zero-count" and out.n == 117 and not out.clamped
+    some = M.cluster_bootstrap_rate({"a": (1, 40), "b": (0, 77)}, seed=1, resamples=300)
+    assert some.method == "bootstrap-task-cluster-300" and some.successes == 1
+
+
+def test_paired_bootstrap_is_paired():
+    rng = __import__("numpy").random.default_rng(0)
+    rates = rng.uniform(0.05, 0.95, size=30)
+    a = {f"t{i}": (int(round(r * 12)), 12) for i, r in enumerate(rates)}
+    same = M.paired_bootstrap_difference(a, a, seed=5, resamples=500)
+    assert (same.point, same.lower, same.upper) == (0.0, 0.0, 0.0)
+    b = {t: (max(0, s - 1), n) for t, (s, n) in a.items()}  # strongly correlated with a, about 1/12 lower
+    paired = M.paired_bootstrap_difference(a, b, seed=5, resamples=2000)
+    ra = M.cluster_bootstrap_rate(a, seed=6, resamples=2000)
+    rb = M.cluster_bootstrap_rate(b, seed=7, resamples=2000)
+    independent_width = math.sqrt((ra.upper - ra.lower) ** 2 + (rb.upper - rb.lower) ** 2)
+    assert paired.upper - paired.lower < independent_width / 3
+
+
+def test_bootstrap_records_clamping_and_dropped_resamples():
+    spread = M.cluster_bootstrap_rate({f"t{i}": (i % 4, 3) for i in range(20)}, seed=2, resamples=500)
+    assert spread.clamped is False  # the percentile interval brackets the point without help
+    diff = M.paired_bootstrap_difference({"a": (1, 1)}, {"a": (1, 2), "b": (0, 1)}, seed=3, resamples=500)
+    assert isinstance(diff, M.RateCI) and 0 < diff.dropped_resamples < 500
+    # with one resample, some seeds draw the same task twice, so no resample has eligible cases on both sides
+    single = [M.paired_bootstrap_difference({"a": (1, 1)}, {"b": (0, 1)}, seed=s, resamples=1) for s in range(20)]
+    assert any(isinstance(x, M.NotComputed) and "no resample" in x.cause for x in single)
+
+
+def test_compute_metrics_reports_bootstrap_diagnostics_and_shared_styles(tmp_path):
+    full = _grid_records("m")
+    _write_store(tmp_path, "m", full)
+    _write_store(tmp_path, "h", [r for r in _grid_records("h") if r["condition"] in ("clean", "direct")])
+    out = M.compute_metrics(tmp_path, seed=1, resamples=200)
+    diag = out["diagnostics"]
+    assert diag["rates"] > 0 and diag["differences"] > 0
+    assert 0 <= diag["rates_clamped"] <= diag["rates"] and diag["dropped_resamples"] >= 0
+    shared = out["shared_pooled"]
+    assert {s["model"] for s in shared} == {"m", "h"} and all(s["conditions"] == ["direct"] for s in shared)
+    m_none = next(s for s in shared if s["model"] == "m" and s["defense"] == "none")
+    direct = [r for r in full if r["defense"] == "none" and r["condition"] == "direct" and r["status"] == "classified"]
+    assert m_none["asr"]["successes"] == sum(r["injection_success"] for r in direct) and m_none["asr"]["n"] == len(direct)
 
 
 def _write_store(directory: Path, model: str, records: list[dict]):

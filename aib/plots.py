@@ -111,7 +111,7 @@ def plot_defense_cost(metrics: dict, path: Path) -> Path:
                 if v and not v.get("not_computed"):
                     extent = max(extent, abs(v["lower"]), abs(v["upper"]))
         _bars(ax, defenses, series, colors)
-        _style(ax, title, "Defense_Cost = TSR(none) - TSR(defense)" if condition == "clean" else "")
+        _style(ax, title, "Defense cost = TSR(none) - TSR(defense)" if condition == "clean" else "")
         ax.axhline(0, color=INK_2, linewidth=1)
     limit = min(1.0, round(extent * 1.15 + 0.005, 2))
     axes[0].set_ylim(-limit, limit)

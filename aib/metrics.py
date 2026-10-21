@@ -8,6 +8,11 @@ reduction) use a paired version: each resample draws one set of tasks and evalua
 on it. Generators are seeded from the base seed and a stable hash of the Cell key, so results do
 not depend on the order Cells are computed in. `wilson_interval` is used where cases are independent.
 
+A percentile bootstrap of a rate with no successes is the single point 0, so a zero-success rate instead
+reports the exact one-sided 95% Clopper-Pearson upper bound, 1 - 0.05^(1/n), which treats the n cases as
+independent. Each interval records whether `_bracket` had to clamp it, and each paired difference how
+many resamples it dropped; `compute_metrics` totals both under "diagnostics".
+
 Usage: python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json
 """
 
@@ -32,11 +37,19 @@ INJECTED_STATUSES = ("classified", "unclassified_not_exposed")
 
 @dataclass(frozen=True)
 class RateCI:
+    """A rate or a difference of two rates with its 95% interval.
+
+    `n` is the denominator: the eligible cases for a rate, and min(na, nb), the smaller of the two
+    denominators, for a paired difference."""
+
     point: float
     lower: float
     upper: float
     method: str
-    n: int  # the denominator
+    n: int
+    successes: int | None = None  # numerator of a rate; None for a difference
+    clamped: bool = False  # True when `_bracket` moved the percentile interval to contain the point
+    dropped_resamples: int = 0  # paired differences: resamples with no eligible case on one side
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -84,9 +97,16 @@ def _arrays(by_task: dict[str, tuple[int, int]], tasks: list[str]) -> tuple[np.n
     return s, n
 
 
-def _bracket(point: float, lower: float, upper: float, lo: float, hi: float) -> tuple[float, float]:
-    """Percentile intervals bracket the pooled estimate in all but degenerate resampling cases; clamp those."""
-    return max(lo, min(lower, point)), min(hi, max(upper, point))
+def _bracket(point: float, lower: float, upper: float, lo: float, hi: float) -> tuple[float, float, bool]:
+    """Percentile intervals bracket the pooled estimate in all but degenerate resampling cases; clamp those
+    and say whether clamping changed the interval."""
+    new_lower, new_upper = max(lo, min(lower, point)), min(hi, max(upper, point))
+    return new_lower, new_upper, (new_lower, new_upper) != (lower, upper)
+
+
+def zero_count_upper(n: int, confidence: float = CONFIDENCE) -> float:
+    """Exact one-sided Clopper-Pearson upper bound for 0 successes in n independent cases."""
+    return 1.0 - (1.0 - confidence) ** (1.0 / n)
 
 
 def cluster_bootstrap_rate(by_task: dict[str, tuple[int, int]], seed: int, resamples: int = 2000) -> RateCI | NotComputed:
@@ -96,13 +116,16 @@ def cluster_bootstrap_rate(by_task: dict[str, tuple[int, int]], seed: int, resam
     if not tasks:
         return NotComputed("empty denominator")
     s, n = _arrays(by_task, tasks)
+    if s.sum() == 0:
+        return RateCI(0.0, 0.0, zero_count_upper(int(n.sum())), "exact-upper-95-zero-count", int(n.sum()), successes=0)
     point = float(s.sum() / n.sum())
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, len(tasks), size=(resamples, len(tasks)))
     rates = s[idx].sum(axis=1) / n[idx].sum(axis=1)
     lower, upper = np.percentile(rates, [2.5, 97.5])
-    lower, upper = _bracket(point, float(lower), float(upper), 0.0, 1.0)
-    return RateCI(point, lower, upper, f"bootstrap-task-cluster-{resamples}", int(n.sum()))
+    lower, upper, clamped = _bracket(point, float(lower), float(upper), 0.0, 1.0)
+    return RateCI(point, lower, upper, f"bootstrap-task-cluster-{resamples}", int(n.sum()), successes=int(s.sum()),
+                  clamped=clamped)
 
 
 def paired_bootstrap_difference(a: dict[str, tuple[int, int]], b: dict[str, tuple[int, int]], seed: int,
@@ -119,10 +142,13 @@ def paired_bootstrap_difference(a: dict[str, tuple[int, int]], b: dict[str, tupl
     idx = rng.integers(0, len(tasks), size=(resamples, len(tasks)))
     da, db = na[idx].sum(axis=1), nb[idx].sum(axis=1)
     ok = (da > 0) & (db > 0)
+    if not ok.any():
+        return NotComputed("no resample had eligible cases in both conditions")
     diffs = sa[idx].sum(axis=1)[ok] / da[ok] - sb[idx].sum(axis=1)[ok] / db[ok]
     lower, upper = np.percentile(diffs, [2.5, 97.5])
-    lower, upper = _bracket(point, float(lower), float(upper), -1.0, 1.0)
-    return RateCI(point, lower, upper, f"paired-bootstrap-task-cluster-{resamples}", int(min(na.sum(), nb.sum())))
+    lower, upper, clamped = _bracket(point, float(lower), float(upper), -1.0, 1.0)
+    return RateCI(point, lower, upper, f"paired-bootstrap-task-cluster-{resamples}", int(min(na.sum(), nb.sum())),
+                  clamped=clamped, dropped_resamples=int((~ok).sum()))
 
 
 # ---------------------------------------------------------------- per-Cell rates
@@ -235,7 +261,11 @@ def _status_counts(records) -> dict[str, int]:
 
 def compute_metrics(store_dir: str | Path, seed: int, resamples: int = 2000) -> dict:
     stores = load_stores(Path(store_dir))
-    models, cells, pooled, costs, filters = {}, [], [], [], []
+    models, cells, pooled, costs, filters, shared_pooled = {}, [], [], [], [], []
+    model_styles = [{r["condition"] for r in recs if r["condition"] != "clean"} for _, recs in stores.values() if recs]
+    shared = sorted(set.intersection(*model_styles), key=_condition_order) if model_styles else []
+    if all(s == set(shared) for s in model_styles):
+        shared = []  # every model ran the same styles, so the shared pool would repeat the pooled rows
     for model, (header, records) in stores.items():
         if not records:
             continue
@@ -284,6 +314,14 @@ def compute_metrics(store_dir: str | Path, seed: int, resamples: int = 2000) -> 
                     "unclassified": sum(r["status"] == "unclassified_not_exposed" for r in pooled_rs),
                     "errored": sum(r["status"] == "errored" for r in pooled_rs),
                 })
+            shared_rs = [r for c in shared for r in by_cell.get((d, c), [])]
+            if shared_rs:
+                key = f"{model}|{d}|shared"
+                shared_pooled.append({
+                    "model": model, "defense": d, "conditions": shared, "n_cases": len(shared_rs),
+                    "asr": as_dict(attack_success_rate(shared_rs, cell_seed(seed, key + "|asr"), resamples)),
+                    "tsr": as_dict(task_success_rate(shared_rs, cell_seed(seed, key + "|tsr"), resamples)),
+                })
         for d in defenses:
             if d == "none":
                 continue
@@ -323,8 +361,23 @@ def compute_metrics(store_dir: str | Path, seed: int, resamples: int = 2000) -> 
                      "interval_method": f"bootstrap-task-cluster-{resamples}",
                      "difference_method": f"paired-bootstrap-task-cluster-{resamples}"},
         "run_facts": run_facts(stores, Path(store_dir).parent / "hosted_run.json"),
+        "diagnostics": diagnostics([cells, pooled, costs, filters, shared_pooled]),
         "models": models, "cells": cells, "pooled": pooled, "defense_cost": costs, "filter": filters,
+        "shared_pooled": shared_pooled,
     }
+
+
+def diagnostics(sections) -> dict:
+    """How many bootstrap intervals `_bracket` clamped, and how many paired resamples were dropped."""
+    entries = [v for section in sections for row in section for k, v in row.items()
+               if isinstance(v, dict) and "method" in v and k not in ("tsr_none", "tsr_defense")]  # those repeat Cell rates
+    rates = [e for e in entries if not e["method"].startswith("paired")]
+    diffs = [e for e in entries if e["method"].startswith("paired")]
+    return {"rates": len(rates), "rates_clamped": sum(e["clamped"] for e in rates),
+            "rates_zero_count": sum(e["method"].startswith("exact-upper") for e in rates),
+            "differences": len(diffs), "differences_clamped": sum(e["clamped"] for e in diffs),
+            "dropped_resamples": sum(e["dropped_resamples"] for e in diffs),
+            "max_dropped_resamples": max((e["dropped_resamples"] for e in diffs), default=0)}
 
 
 def run_facts(stores: dict, hosted_run_path: Path) -> dict:
