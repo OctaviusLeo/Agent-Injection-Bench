@@ -25,13 +25,16 @@ LIMITATIONS = (
     "- **One environment.** All {n_user_tasks} user tasks come from AgentDojo's workspace suite, so the results describe "
     "an email, calendar, and file-drive assistant, not agents in general.",
     "- **Small local models.** Their task success can be low even without attacks, which widens intervals and limits "
-    "what Defense_Cost can resolve.",
+    "what the defense-cost comparison can resolve.",
     "- **One model family locally.** Both local models are Qwen-family: Llama-3.1-8B was replaced before the benchmark "
     "because llama.cpp could not parse the turns in which it called two tools (the model checks are recorded in "
     "`.kiro/specs/agent-injection-bench/design.md`), so the local "
     "comparison is across size and generation, not family.",
     "- **The hosted grid is smaller:** it covers {hosted_conditions} of the {n_conditions} conditions because of the "
-    "Spend_Cap; the hosted model is an alias that can change over time, and each case records the response `model` field.",
+    "spend cap. `{hosted_model}` is OpenAI's API model ID, an alias the provider can repoint; the response `model` field "
+    "recorded on every case echoed the alias, so no dated snapshot was recorded.",
+    "- **Floor effect.** Undefended attack success was at most {max_none_asr} pooled over a model's styles, so no defense "
+    "could lower it by more than that; the ASR-reduction intervals are narrow mainly because there was little to reduce.",
     "- **Different decoding stacks.** The local models are 4-bit GGUF quantizations served by llama.cpp; quantization and "
     "the server's chat template can change behavior relative to the original weights.",
     "- **Exposure-conditioned ASR.** Cases where the agent never read the injected data are excluded from the ASR "
@@ -39,6 +42,15 @@ LIMITATIONS = (
     "- **The tool-permission-limit defense is not implemented.** It needs a per-task allowed-tool list that AgentDojo "
     "does not provide.",
     "- **Fixed filter threshold** of {threshold}; precision and recall at other thresholds are not explored.",
+    "- **Zero-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound, which treats "
+    "cases as independent and so can be narrower than a task-clustered bound; a paired difference between two "
+    "zero-success rates still shows a zero-width bootstrap interval.",
+    "- **Goal confounding.** Each user task is always paired with the same injected goal (user task k with goal k mod 6), "
+    "and the bootstrap resamples tasks only, so task and goal effects cannot be separated and the intervals do not cover "
+    "other pairings.",
+    "- **Predicate exceptions.** An AgentDojo injection predicate that raises is scored as not carried out, and the "
+    "committed records do not say whether that happened; runs made after this was found record the exception in "
+    "`security_check_error`.",
     "- **An AgentDojo executor crash counts as errored.** `ToolsExecutor` in `agentdojo` `0.1.35` runs `literal_eval` on "
     "every string argument and catches only `ValueError` and `SyntaxError`, so a nested set literal (a set written inside "
     "a set) raises `TypeError: unhashable type` and ends the case. The runner records such a case as `errored` with that cause, as for "
@@ -47,6 +59,16 @@ LIMITATIONS = (
     "- **Suite deviation.** The suite includes AgentDojo's `v1.1.2` task fixes, which `get_suite` omits in `0.1.35`, so "
     "numbers are not directly comparable with results produced through that function.",
 )
+
+
+def limitation_lines(metrics: dict, cfg, calib: dict) -> str:
+    """The Known limitations list shared by the Report and the README, filled from the results and the config."""
+    facts = metrics.get("run_facts") or {}
+    base = [p["asr"] for p in metrics.get("pooled", []) if p["defense"] == "none" and _computed(p["asr"])]
+    max_none_asr = f"{max(a['point'] for a in base):.3f}" if base else "not computed"
+    return "\n".join(line.format(n_user_tasks=facts.get("n_user_tasks"), hosted_conditions=len(cfg.hosted.conditions),
+                                 n_conditions=facts.get("n_conditions"), threshold=calib.get("threshold"),
+                                 hosted_model=cfg.hosted.model, max_none_asr=max_none_asr) for line in LIMITATIONS)
 
 
 class RenderError(ValueError):
@@ -187,9 +209,7 @@ def build_context(root: Path, stamp: dict) -> dict:
         "filter_table": filter_table(metrics), "findings": findings(metrics),
         "hosted_statement": hosted_statement(facts, cfg.hosted.conditions, facts.get("n_conditions") or len(cfg.experiment.conditions)),
     }
-    ctx["limitations"] = "\n".join(line.format(
-        n_user_tasks=ctx["n_user_tasks"], hosted_conditions=len(cfg.hosted.conditions),
-        n_conditions=facts.get("n_conditions"), threshold=ctx["threshold"]) for line in LIMITATIONS)
+    ctx["limitations"] = limitation_lines(metrics, cfg, calib)
     return ctx
 
 

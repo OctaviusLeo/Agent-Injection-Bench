@@ -31,7 +31,7 @@ Tool-using agents read emails, calendar entries, and files that other people can
 
 **Hosted model scope.** {{hosted_statement}}
 
-**Statistics.** Each rate has a 95% interval from a task-clustered percentile bootstrap ({{resamples}} resamples; the {{repetitions}} Repetitions of a task are resampled together because they are not independent). Defense_Cost (TSR under `none` minus TSR under the defense) and ASR reduction use a paired bootstrap that resamples one set of tasks for both conditions. The base seed is {{metrics_seed}}.
+**Statistics.** Each rate has a 95% interval from a task-clustered percentile bootstrap ({{resamples}} resamples; the {{repetitions}} Repetitions of a task are resampled together because they are not independent). Defense_Cost (TSR under `none` minus TSR under the defense) and ASR reduction use a paired bootstrap that resamples one set of tasks for both conditions. A rate with no successes would get a zero-width bootstrap interval, so it reports the exact one-sided 95% upper bound (Clopper-Pearson, treating cases as independent) instead, marked † in the tables. The base seed is {{metrics_seed}}.
 
 ## Results
 

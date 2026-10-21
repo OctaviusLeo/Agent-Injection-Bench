@@ -94,6 +94,34 @@ def test_headline_reports_filter_range_and_prompt_defense_exceptions():
     assert DB.headline({}) == "- No pooled comparison had enough classified cases for a finding."
 
 
+def test_headline_uses_shared_styles_floor_and_filter_flag_rate():
+    asr = lambda s, n, p: dict(_r(p, 0.0, p * 2), successes=s, n=n)  # noqa: E731
+    metrics = {
+        "pooled": [{"model": "h", "defense": "none", "conditions": ["direct", "important_instructions"], "asr": asr(1, 233, 0.004)},
+                   {"model": "q", "defense": "none", "conditions": ["direct", "x", "important_instructions"],
+                    "asr": asr(14, 470, 0.030)}],
+        "shared_pooled": [{"model": "h", "defense": "none", "conditions": ["direct", "important_instructions"],
+                           "asr": asr(1, 233, 0.004)},
+                          {"model": "q", "defense": "none", "conditions": ["direct", "important_instructions"],
+                           "asr": asr(12, 190, 0.063)}],
+        "cells": [{"model": "q", "defense": "none", "condition": "important_instructions", "asr": asr(12, 97, 0.124)},
+                  {"model": "q", "defense": "none", "condition": "x", "asr": asr(2, 95, 0.021)},
+                  {"model": "h", "defense": "none", "condition": "direct", "asr": asr(1, 117, 0.009)}],
+        "defense_cost": [{"model": "q", "defense": "filter", "condition": "pooled", "defense_cost": _r(0.3, 0.2, 0.4),
+                          "asr_reduction": _r(0.02, 0.005, 0.04)}],
+        "filter": [{"model": "q", "condition": "clean", "false_positive_rate": _r(0.334, 0.3, 0.37)},
+                   {"model": "h", "condition": "clean", "false_positive_rate": _r(0.401, 0.35, 0.45)},
+                   {"model": "h", "condition": "pooled", "false_positive_rate": _r(0.1, 0.05, 0.15)}],
+    }
+    text = DB.headline(metrics)
+    assert "on the styles every model ran (`direct`, `important_instructions`)" in text
+    assert "`h` 1 of 233 classified cases, 0.004 [0.000, 0.008], `q` 12 of 190 classified cases" in text
+    assert "which differ (2 for `h`, 3 for `q`)" in text
+    assert "at most 0.030 [0.000, 0.060] (`q`, pooled over its styles)" in text
+    assert "`q` 12 of 14 under `important_instructions` (0.124 [0.000, 0.248]), `h` 1 of 1 under `direct`" in text
+    assert "flagged 0.334 [0.300, 0.370] (`q`) to 0.401 [0.350, 0.450] (`h`) of benign tool outputs" in text
+
+
 def test_hosted_dates_from_the_ledger(tmp_path):
     ledger = tmp_path / "ledger.jsonl"
     assert "results/hosted_ledger.jsonl" in DB.hosted_dates(ledger, "h")

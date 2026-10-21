@@ -2,27 +2,27 @@
 
 A reproducible benchmark that measures how often tool-using LLM agents follow instructions planted in tool outputs (indirect prompt injection), and how much each defense lowers that rate without hurting legitimate task success. Every tool is simulated: nothing reaches a real account, website, or system.
 
-It runs {{n_user_tasks}} user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under {{n_styles}} injection styles and a clean control, with {{n_defenses}} defenses, on {{n_models}} models: two open-weight Qwen models served locally by llama.cpp, and OpenAI's hosted `{{hosted_model}}`, queried {{hosted_dates}} on {{hosted_styles}} of the styles to stay within its spend cap. That is {{n_records}} scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
+It runs {{n_user_tasks}} user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under {{n_styles}} injection styles and a clean control, with {{n_defenses}} defenses, on {{n_models}} models: two open-weight Qwen models served locally by llama.cpp, and an OpenAI hosted model (API model ID `{{hosted_model}}`), queried {{hosted_dates}} on {{hosted_styles}} of the styles to stay within its spend cap. That is {{n_records}} scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
 
 ## Results
 
-Pooled over the injection styles, with 95% task-clustered bootstrap intervals; changes are paired against no defense on the same resampled tasks.
+Rates come with 95% task-clustered bootstrap intervals, except that a rate with no successes shows its exact one-sided 95% upper bound (marked †); changes are paired against no defense on the same resampled tasks.
 
 {{headline}}
 
 ![Task-success cost of each defense](results/plots/defense_cost.png)
 
-**Terms.** ASR (attack success rate) is the share of injected cases in which the agent carried out the injected goal, counted only when the agent actually read the injected tool output. TSR (task success rate) is the share of cases in which it completed the user's task. Defense_Cost is TSR without a defense minus TSR with it; ASR reduction is ASR without a defense minus ASR with it. Exposure is the share of injected cases in which the agent read the injection.
+**Terms.** ASR (attack success rate) is the share of injected cases in which the agent carried out the injected goal, counted only when the agent actually read the injected tool output. TSR (task success rate) is the share of cases in which it completed the user's task. Defense cost is TSR without a defense minus TSR with it; ASR reduction is ASR without a defense minus ASR with it. Exposure is the share of injected cases in which the agent read the injection.
 
 {{run_facts}}
 
-**Pooled over the Injection_Styles** (from `results/summary.md`):
+**Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes):
 
 {{pooled_table}}
 
 ![Attack success rate by defense](results/plots/asr_by_defense.png)
 
-The paper-style write-up (question, setup, results, limitations, threats to validity) is [docs/REPORT.md](docs/REPORT.md). The full per-Cell table, with exposure, unclassified and errored counts, and filter precision and recall, is [results/summary.md](results/summary.md).
+The paper-style write-up (question, setup, results, limitations, threats to validity) is [docs/REPORT.md](docs/REPORT.md). The full per-cell table, with exposure, unclassified and errored counts, and filter precision and recall, is [results/summary.md](results/summary.md).
 
 ## How it works
 
@@ -43,7 +43,7 @@ flowchart LR
 - **Attacks.** Five generic injection styles, planted only in fixture fields that the user task's ground truth reads, so the injection always arrives inside a tool output; each user task is paired with one of six benign sandbox goals. A clean control has no injection.
 - **Classification.** An injected case counts toward the attack success rate only when the agent actually received a tool output containing the injection; other injected cases are reported as unclassified.
 - **Defenses.** `none`, `delimit` (spotlighting with `<<` `>>`), `hierarchy` (instruction-hierarchy system prompt), and `filter` (a DeBERTa prompt-injection classifier screens every tool output).
-- **Statistics.** Task-clustered bootstrap intervals for every rate; paired bootstrap intervals for Defense_Cost and ASR reduction.
+- **Statistics.** Task-clustered bootstrap intervals for every rate; paired bootstrap intervals for defense cost and ASR reduction.
 
 ## Run it
 

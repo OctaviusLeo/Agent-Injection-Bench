@@ -14,7 +14,7 @@ import re
 import sys
 from pathlib import Path
 
-from aib.report import LIMITATIONS, _computed, render
+from aib.report import _computed, limitation_lines, render
 from aib.results_table import fmt_rate
 
 _STAMP = re.compile(r"^- (Table|Metrics): command `(?P<command>[^`]*)`, seed (?P<seed>\S+), commit `(?P<commit>[0-9a-f]{40})`\.$",
@@ -41,18 +41,44 @@ def _excludes_zero(entry: dict) -> bool:
 def headline(metrics: dict) -> str:
     """The README's opening findings, from the pooled paired comparisons; numbers are formatted as summary.md formats them."""
     out = []
+    shared = [s for s in metrics.get("shared_pooled", []) if s["defense"] == "none" and _computed(s["asr"])]
     base = [p for p in metrics.get("pooled", []) if p["defense"] == "none" and _computed(p["asr"])]
-    if base:
+    if shared:
+        styles = ", ".join(f"`{c}`" for c in shared[0]["conditions"])
+        sizes = ", ".join(f"{len(p['conditions'])} for `{p['model']}`" for p in base)
+        out.append(f"- **Undefended attack success** on the styles every model ran ({styles}): " + ", ".join(
+            f"`{s['model']}` {s['asr']['successes']} of {s['asr']['n']} classified cases, {fmt_rate(s['asr'])}" for s in shared)
+            + f". The table below pools each model over all the styles it ran, which differ ({sizes}).")
+    elif base:
         out.append("- **Undefended attack success:** " + ", ".join(f"`{p['model']}` {fmt_rate(p['asr'])}" for p in base) + ".")
+    if base:
+        top = max(base, key=lambda p: p["asr"]["point"])
+        parts = []
+        for p in sorted(base, key=lambda p: -p["asr"]["point"]):
+            cells = [c for c in metrics.get("cells", []) if c["model"] == p["model"] and c["defense"] == "none"
+                     and _computed(c["asr"]) and c["asr"].get("successes")]
+            if cells:
+                c = max(cells, key=lambda c: c["asr"]["successes"])
+                parts.append(f"`{p['model']}` {c['asr']['successes']} of {p['asr']['successes']} under `{c['condition']}` "
+                             f"({fmt_rate(c['asr'])})")
+        out.append(f"- **Floor effect:** undefended attack success was at most {fmt_rate(top['asr'])} (`{top['model']}`, pooled "
+                   "over its styles), so no defense could lower it by more than that"
+                   + ("; the style with the most successful attacks, per model: " + ", ".join(parts) if parts else "")
+                   + ".")
     pooled = [c for c in metrics.get("defense_cost", []) if c["condition"] == "pooled"]
     filt = [c for c in pooled if c["defense"] == "filter" and _computed(c["defense_cost"]) and _computed(c["asr_reduction"])]
     if filt:
         lo = min(filt, key=lambda c: c["defense_cost"]["point"])
         hi = max(filt, key=lambda c: c["defense_cost"]["point"])
         best = max(filt, key=lambda c: c["asr_reduction"]["point"])
+        fpr = sorted((f for f in metrics.get("filter", []) if f["condition"] == "clean" and _computed(f["false_positive_rate"])),
+                     key=lambda f: f["false_positive_rate"]["point"])
+        why = (f" It is expensive because it flagged {fmt_rate(fpr[0]['false_positive_rate'])} (`{fpr[0]['model']}`) to "
+               f"{fmt_rate(fpr[-1]['false_positive_rate'])} (`{fpr[-1]['model']}`) of benign tool outputs in runs without an "
+               "attack, and a flagged output is replaced by an omission notice." if fpr else "")
         out.append(f"- **DeBERTa filter:** it lowered task success by {fmt_rate(lo['defense_cost'])} (`{lo['model']}`) to "
                    f"{fmt_rate(hi['defense_cost'])} (`{hi['model']}`); its largest drop in attack success was "
-                   f"{fmt_rate(best['asr_reduction'])} (`{best['model']}`).")
+                   f"{fmt_rate(best['asr_reduction'])} (`{best['model']}`).{why}")
     prompts = [c for c in pooled if c["defense"] in ("delimit", "hierarchy")
                and _computed(c["defense_cost"]) and _computed(c["asr_reduction"])]
     if prompts:
@@ -89,9 +115,7 @@ def build_context(root: Path, stamp: dict) -> dict:
     stamps = summary_stamps(summary)
     if "table" not in stamps or "metrics" not in stamps:
         raise ValueError("results/summary.md is missing its stamp lines")
-    limitations = "\n".join(line.format(n_user_tasks=facts.get("n_user_tasks"), hosted_conditions=len(cfg.hosted.conditions),
-                                        n_conditions=facts.get("n_conditions"), threshold=calib.get("threshold"))
-                            for line in LIMITATIONS)
+    limitations = limitation_lines(metrics, cfg, calib)
     return {
         "readme_command": stamp["command"], "readme_seed": stamp["seed"], "readme_commit": stamp["commit"],
         "summary_command": stamps["table"]["command"], "summary_seed": stamps["table"]["seed"],
