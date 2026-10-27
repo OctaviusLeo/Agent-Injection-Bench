@@ -1,0 +1,12 @@
+# Dependabot proposes updates to the GitHub Actions that CI pins by tag.
+# Python dependencies are deliberately left out: every package is pinned exactly in pyproject.toml and uv.lock so
+# that the committed results reproduce, and a version change is a decision that comes with a rerun.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
