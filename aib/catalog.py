@@ -9,7 +9,6 @@ import argparse
 import importlib.metadata as md
 import json
 import sys
-from pathlib import Path
 
 from aib.repro import REPO_ROOT, make_stamp, require_clean
 from aib.suite import (

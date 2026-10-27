@@ -49,3 +49,11 @@ markers = [
 source = ["aib", "scripts"]
 core = "sysmon"  # sys.monitoring (Python 3.12+): far less overhead in AgentDojo-heavy tests
 omit = ["*/__init__.py"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+# Pyflakes plus pycodestyle's error subset (ruff's long-standing default selection), set explicitly so that a newer
+# ruff with a wider default rule set cannot change what CI enforces. CI pins the ruff version as well.
+select = ["E4", "E7", "E9", "F"]

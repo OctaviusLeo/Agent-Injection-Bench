@@ -9,7 +9,6 @@ import argparse
 import json
 import sys
 from collections import Counter
-from pathlib import Path
 
 from aib.attacks import STYLES
 from aib.goals import goal_for

@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 
 DEFENSE_ORDER = ("none", "delimit", "hierarchy", "filter")
 ZERO_COUNT_MARK = "†"
