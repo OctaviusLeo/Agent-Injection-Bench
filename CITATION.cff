@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this benchmark or its results, please cite it as below."
+type: software
+title: "Agent Injection Bench"
+abstract: >-
+  A reproducible benchmark that measures how often tool-using LLM agents follow instructions planted in tool
+  outputs (indirect prompt injection), and how much each defense lowers that rate without hurting legitimate task
+  success, in AgentDojo's simulated workspace suite.
+authors:
+  - given-names: "Symaedchit Octavius"
+    family-names: "Leo"
+    alias: "OctaviusLeo"
+repository-code: "https://github.com/OctaviusLeo/Agent-Injection-Bench"
+license: MIT
+version: "0.1.0"
+keywords:
+  - prompt injection
+  - LLM agents
+  - AI security
+  - benchmark
+  - AgentDojo
