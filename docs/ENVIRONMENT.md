@@ -83,4 +83,4 @@ Stamped commits of the models in use: `8ef04ba7dbafdf3a270008830ebd3413b72b59db`
 | --- | --- | --- |
 | GitHub Actions runner | `ubuntu-latest` (GitHub-hosted) | `.github/workflows/ci.yml` |
 | actions/checkout | v7.0.1 (latest release, published 2026-07-20) | `gh api repos/actions/checkout/releases/latest`, read 2026-10-18; pinned in `.github/workflows/ci.yml` |
-| astral-sh/setup-uv | v10.3.0 (latest release, published 2026-10-09) | `gh api repos/astral-sh/setup-uv/releases/latest`, read 2026-10-18; pinned in `.github/workflows/ci.yml` |
+| astral-sh/setup-uv | v10.3.2 (published 2026-10-22) | `gh api repos/astral-sh/setup-uv/releases/tags/v10.3.2`, read 2026-10-28; pinned in `.github/workflows/ci.yml` (bumped from v10.3.0 by Dependabot, merged 2026-10-27) |
