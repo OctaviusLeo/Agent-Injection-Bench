@@ -216,6 +216,25 @@ def test_ledger_reservations_and_release(tmp_path):
         SpendLedger(tmp_path / "x.jsonl", cap_usd=-1, prices=PRICES)
 
 
+def test_ledger_with_run_id_counts_only_its_own_lines(tmp_path):
+    path = tmp_path / "l.jsonl"
+    first = SpendLedger(path, cap_usd=1.0, prices=PRICES, run_id="run-a")
+    first.record(first.reserve(300, 100), {"prompt_tokens": 1000, "completion_tokens": 1000}, "m")
+    spent = first.total_usd
+    assert spent > 0
+    assert SpendLedger(path, cap_usd=1.0, prices=PRICES, run_id="run-a").total_usd == pytest.approx(spent)
+    assert SpendLedger(path, cap_usd=1.0, prices=PRICES, run_id="run-b").total_usd == 0.0
+    assert SpendLedger(path, cap_usd=1.0, prices=PRICES).total_usd == pytest.approx(spent)  # no run id: the whole file
+    assert {json.loads(line)["run_id"] for line in path.read_text().splitlines()} == {"run-a"}
+
+
+def test_long_context_tier_prices_prompts_over_the_threshold():
+    long = Prices(cache_write=0.625, cached_input=0.05, output=2.50)
+    tiered = Prices(cache_write=0.125, cached_input=0.01, output=0.50, long_context_tokens=100_000, long_context=long)
+    assert request_cost(tiered, 100_000, 0, 10) == pytest.approx(request_cost(PRICES, 100_000, 0, 10))
+    assert request_cost(tiered, 100_001, 1, 10) == pytest.approx((100_000 * 0.625 + 1 * 0.05 + 10 * 2.50) / 1e6)
+
+
 def test_failed_hosted_request_releases_reservation(tmp_path, monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "k")
     ledger = SpendLedger(tmp_path / "l.jsonl", cap_usd=1.0, prices=PRICES)

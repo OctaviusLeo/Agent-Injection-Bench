@@ -2,7 +2,7 @@
 
 Each task commits as `task C<id>: <summary>` after its check passes. The gate is `bash scripts/test_unit.sh` plus `uvx ruff@0.17.3 check .`.
 
-- [ ] C1 Ledger: run-scoped totals and the long-context price tier (Req C2.2-C2.5)
+- [x] C1 Ledger: run-scoped totals and the long-context price tier (Req C2.2-C2.5)
   - `SpendLedger(..., run_id=...)` counts only that run's lines and tags every line it writes; without `run_id` it behaves as before.
   - `Prices` takes an optional tier: above `long_context_tokens` prompt tokens a request is priced at `long_context`.
   - Unit tests for both, and for the unchanged OpenAI behaviour.

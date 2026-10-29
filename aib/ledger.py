@@ -5,6 +5,9 @@ The ledger file (results/hosted_ledger.jsonl) is append-only; its total is the s
 every line, including lines written by earlier runs, so the cap holds over the whole project.
 Reservations make the precheck safe with several concurrent workers: each worker reserves its worst
 case before sending and settles it with the real cost afterwards.
+
+A ledger opened with a `run_id` (the Claude runs' per-run cap, claude-provider Req C2) tags every line
+it writes with that id and counts only those lines against its cap.
 """
 
 from __future__ import annotations
@@ -31,11 +34,14 @@ class SpendCapExceeded(RuntimeError):
 
 @dataclass(frozen=True)
 class Prices:
-    """USD per 1M tokens."""
+    """USD per 1M tokens. A request whose prompt is over `long_context_tokens` is priced at `long_context`
+    instead (Claude Haiku 5.5's rates for prompts over 100,000 tokens)."""
 
     cache_write: float
     cached_input: float
     output: float
+    long_context_tokens: int | None = None
+    long_context: Prices | None = None
 
 
 @dataclass(frozen=True)
@@ -45,18 +51,22 @@ class Reservation:
 
 def request_cost(prices: Prices, prompt_tokens: int, cached_tokens: int, completion_tokens: int) -> float:
     """Conservative cost: uncached prompt tokens at the cache-write rate, cached at the cached rate."""
+    if prices.long_context is not None and prices.long_context_tokens is not None and prompt_tokens > prices.long_context_tokens:
+        prices = prices.long_context
     uncached = max(prompt_tokens - cached_tokens, 0)
     return (uncached * prices.cache_write + cached_tokens * prices.cached_input + completion_tokens * prices.output) / 1e6
 
 
 class SpendLedger:
-    def __init__(self, path: Path | str, cap_usd: float, prices: Prices, chars_per_token: float = 3.0) -> None:
+    def __init__(self, path: Path | str, cap_usd: float, prices: Prices, chars_per_token: float = 3.0,
+                 run_id: str | None = None) -> None:
         if cap_usd < 0:
             raise ValueError("cap_usd must be non-negative")
         self.path = Path(path)
         self.cap_usd = float(cap_usd)
         self.prices = prices
         self.chars_per_token = float(chars_per_token)
+        self.run_id = run_id
         self._lock = threading.Lock()
         self._reserved = 0.0
         self._spent = self._load_total()
@@ -67,7 +77,9 @@ class SpendLedger:
         total = 0.0
         for line in self.path.read_text(encoding="utf-8").splitlines():
             if line.strip():
-                total += float(json.loads(line).get("cost_usd", 0.0))
+                entry = json.loads(line)
+                if self.run_id is None or entry.get("run_id") == self.run_id:
+                    total += float(entry.get("cost_usd", 0.0))
         return total
 
     @property
@@ -113,6 +125,8 @@ class SpendLedger:
 
     def _append(self, entry: dict) -> None:
         entry = {"ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), **entry}
+        if self.run_id is not None:
+            entry["run_id"] = self.run_id
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, sort_keys=True) + "\n")
