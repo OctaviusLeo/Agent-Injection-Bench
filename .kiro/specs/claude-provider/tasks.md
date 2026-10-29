@@ -17,8 +17,8 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
   - Unit tests with stubs and fakes.
 - [x] C5 Judge (Req C3)
   - `aib/judge.py`, `scripts/judge.py`, and unit tests with a fake client.
-- [ ] C6 Dependency pin and documentation
+- [x] C6 Dependency pin and documentation
   - `anthropic==1.15.0` in `pyproject.toml` and `uv.lock`; the Claude section of `docs/ENVIRONMENT.md`; the README template and the regenerated README.
-- [ ] C7 Gate and live smoke test (Req C4)
+- [x] C7 Gate and live smoke test (Req C4)
   - `bash scripts/test_unit.sh` and `uvx ruff@0.17.3 check .` pass.
   - With the key forwarded: `python scripts/claude_check.py` passes within the Run_Cap, and `python -m aib.judge --store results/raw/qwen3-4b.jsonl --limit 2` writes two verdicts.

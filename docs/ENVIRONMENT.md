@@ -67,6 +67,21 @@ Stamped commits of the models in use: `8ef04ba7dbafdf3a270008830ebd3413b72b59db`
 | API key | read only from `OPENAI_API_KEY`, exported by `scripts/wsl_run.sh` from `~/.config/aib/secrets.env` (outside the repository) | `tests/test_llm.py::test_missing_secret_raises_before_any_request` |
 | openai (Python client) | 3.35.0 | `docs/evidence/uv_tree.txt`; `tests/test_llm.py` exercises it against a fake server |
 
+## Claude target, judge, and Run_Cap
+
+Spec: `.kiro/specs/claude-provider/`. Claude is billed to the owner's Anthropic API credit; the OpenAI Spend_Cap above is unchanged.
+
+| Item | Value | Artifact |
+| --- | --- | --- |
+| Claude target | `claude-haiku-5-5` (Anthropic Messages API); response `model` field: `claude-haiku-5-5` | `results/claude_check.json` (stamp: `python scripts/claude_check.py`, seed 0, commit `9bed6d59ac120f5b885a1941d7f8ed5e544867c5`) |
+| Claude check | passed: a tool-free answer, a `get_current_day` call, and an answer after the tool result went back; estimated spend $0.0001575 | `results/claude_check.json` |
+| Second-opinion judge | `claude-sonnet-5-5` with a JSON verdict (`carried_out`, `evidence`) through structured outputs. Smoke run on 2 `qwen3-4b` cases: both verdicts parsed and both agree with AgentDojo's check; estimated spend $0.006955 | `results/judge/qwen3-4b.jsonl`, `results/judge/qwen3-4b_agreement.json` (stamp: `python -m aib.judge --store results/raw/qwen3-4b.jsonl --limit 2`, seed 0, commit `5530e37075c14bb6386091c12fad8190bf37a8da`) |
+| Run_Cap | $5.00 per Claude run (`run_cap_usd: 5.00` in `config/claude.yaml`, set by the owner on 2026-10-29), enforced by `aib/ledger.py` over the run's own ledger lines | `results/claude_ledger.jsonl` |
+| Request settings | target: `max_tokens: 16000`, `effort: medium`, adaptive thinking (the model's default), automatic prompt caching; judge: `max_tokens: 8000`, `effort: medium`, no caching. No `temperature`, `top_p`, `top_k`, or seed: current Claude models accept only their defaults | `config/claude.yaml` |
+| Prices (USD per million tokens) | from `https://platform.claude.com/docs/en/about-claude/pricing`, read 2026-10-29. Claude Haiku 5.5: input 0.10, 5-minute cache write 0.125, cache hit 0.01, output 0.50 (0.50, 0.625, 0.05, and 2.50 for prompts over 100,000 tokens). Claude Sonnet 5.5: 2.00, 2.50, 0.10, 10.00 | `config/claude.yaml` |
+| API key | read only from `ANTHROPIC_FOREVER_API_KEY`, a Windows user variable, forwarded into WSL per command: in PowerShell run `$env:WSLENV = 'ANTHROPIC_FOREVER_API_KEY/u'` once per window, then the usual `wsl -d Ubuntu-24.04 -- bash /mnt/c/dev/Agent-Injection-Bench/scripts/wsl_run.sh <command>`. Never written to `~/.config/aib/` or the repository | `tests/test_claude_llm.py::test_missing_key_raises_before_any_request` |
+| anthropic (Python SDK) | 1.15.0, MIT, pinned in `pyproject.toml` (already in `uv.lock` through AgentDojo) | `tests/test_claude_llm.py` runs it with the SDK's own response and error types |
+
 ## Filter classifier
 
 | Item | Value | Artifact |
