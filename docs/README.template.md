@@ -81,6 +81,7 @@ bash scripts/build_results.sh
 - One model's benchmark (resumable; reproduces that model's store): `bash scripts/run_benchmark.sh <model key>`
 - The same run under a watchdog that resumes it with a different launch method (setsid, systemd, tmux, child process) after a crash, a vanished job, a stall, or a slowdown: `uv run --frozen python -m aib.watchdog --model <model key>`
 - The hosted model needs `OPENAI_API_KEY` (read from `~/.config/aib/secrets.env` by `scripts/wsl_run.sh`) and stops before its Spend_Cap.
+- The Claude target (`claude-haiku-5-5`) and the second-opinion judge (`claude-sonnet-5-5`) are billed to the Anthropic API key in the Windows user variable that `config/models.yaml` names, forwarded into WSL with `WSLENV` (see `docs/ENVIRONMENT.md`). Every Claude command stops before the per-run cap in `config/claude.yaml`. The judge gives a second opinion on each attack case and reports how often it agrees with AgentDojo's rule-based check; it never changes a reported rate.
 - Regenerate the metrics, the Results_Table, the plots, the Report, and this README, then run the traceability check: `bash scripts/build_results.sh`
 
 ## Reproduce each result
@@ -91,6 +92,9 @@ bash scripts/build_results.sh
 | Every rate and interval, `results/metrics.json` | `uv run --frozen python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json` |
 | The Results_Table, the plots, the Report, and this README | `bash scripts/build_results.sh` |
 | Hosted run summary, `results/hosted_run.json` | `bash scripts/run_benchmark.sh gpt-6-luna` |
+| Claude run summary, `results/claude_run.json` | `bash scripts/run_benchmark.sh claude-haiku-5-5` |
+| Claude check, `results/claude_check.json` | `uv run --frozen python scripts/claude_check.py` |
+| Second-opinion verdicts and agreement, `results/judge/<model key>.jsonl` and `results/judge/<model key>_agreement.json` | `uv run --frozen python scripts/judge.py --store results/raw/<model key>.jsonl` |
 | Classifier check on ground-truth outputs, `results/m3_filter_calibration.json` | `uv run --frozen python scripts/filter_calibration.py` |
 | Stub_Model validation, `results/m2_stub_validation.json` | `uv run --frozen python scripts/stub_validation.py` |
 | Task catalog, `results/m1_catalog.json` | `uv run --frozen python scripts/catalog.py` |
