@@ -182,6 +182,42 @@ def test_run_cli_local_and_hosted_with_stubs(tmp_path, monkeypatch, capsys):
     assert "starting 3 cases" in capsys.readouterr().out
 
 
+def test_run_cli_claude_uses_its_grid_ledger_and_summary(tmp_path, monkeypatch):
+    import aib.claude
+    import aib.classifier
+
+    root = _repo(tmp_path)
+    monkeypatch.setenv("AIB_RUNS", str(tmp_path / "runs"))
+    built = {}
+
+    def fake_llm(cfg, model, ledger, purpose="", client=None):
+        built.update(model=model, run_id=ledger.run_id, cap=ledger.cap_usd, purpose=purpose)
+        return StubLLM("follow_injection")
+
+    monkeypatch.setattr(aib.claude, "make_claude_llm", fake_llm)
+    monkeypatch.setattr(aib.classifier, "InjectionClassifier", lambda **k: KeywordClassifier())
+    real = E.build_grid
+    monkeypatch.setattr(E, "build_grid", lambda *a, **k: real(*a, **k)[:3])
+    assert E.run_cli("claude-haiku-5-5", pilot=False, workers=1, root=root) == 0
+    assert built["cap"] == 5.0 and built["purpose"] == "benchmark:claude-haiku-5-5"
+    summary = json.loads((root / "results" / "claude_run.json").read_text())
+    assert summary["completed_cases"] == 3 and summary["cap_scope"] == "run" and summary["run_id"] == built["run_id"]
+    assert summary["spend_cap_usd"] == 5.0 and not (root / "results" / "hosted_run.json").exists()
+    header = E.ResultsStore(root / "results/raw/claude-haiku-5-5.jsonl").header()
+    assert header["config"]["sampling"]["temperature"] is None and header["config"]["claude"]["run_cap_usd"] == 5.0
+    assert "hosted" not in header["config"]
+
+
+def test_grid_for_uses_each_providers_conditions():
+    cfg = load_all()
+    claude = E.grid_for(cfg, "claude-haiku-5-5")
+    assert len(claude) == 3 * 4 * 40 * 3 and {s.condition for s in claude} == {"clean", "direct", "important_instructions"}
+    assert claude[0].rep == 0 and claude[-1].rep == 2  # Repetition-major, like the OpenAI hosted grid
+    assert len(E.grid_for(cfg, "gpt-6-luna")) == len(claude)
+    assert len(E.grid_for(cfg, "qwen3-4b")) == 4 * 6 * 40 * 3
+    assert E.model_version(cfg, "claude-haiku-5-5").startswith("claude-haiku-5-5")
+
+
 def test_main_dispatches(monkeypatch):
     monkeypatch.setattr(E, "run_cli", lambda model, pilot, workers: 7 if pilot and workers == 3 else 0)
     assert E.main(["run", "--model", "qwen3-4b", "--pilot", "--workers", "3"]) == 7

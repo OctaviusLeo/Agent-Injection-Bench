@@ -64,6 +64,17 @@ def build_grid(model: str, cfg: ExperimentConfig, *, hosted: bool = False, hoste
             for d in cfg.defenses for c in cfg.conditions for t in tasks for r in range(reps)]
 
 
+def grid_for(cfg: AllConfig, model: str, pilot: bool = False) -> list[CaseSpec]:
+    """A model's grid: the full grid for a local model; a hosted model's conditions and defenses come from
+    config/hosted.yaml (OpenAI) or config/claude.yaml (Claude)."""
+    m = cfg.models.models[model]
+    if m.provider == "llamacpp":
+        return build_grid(model, cfg.experiment, pilot=pilot)
+    hosted = cfg.claude if m.provider == "anthropic" else cfg.hosted
+    return build_grid(model, cfg.experiment, hosted=True, hosted_conditions=hosted.conditions,
+                      hosted_defenses=hosted.defenses, pilot=pilot)
+
+
 class ResultsStore:
     """results/raw/<model>.jsonl: one header line, then one CaseResult per line."""
 
@@ -218,6 +229,10 @@ def run_grid(model: str, specs: list[CaseSpec], workers: int, store: ResultsStor
 # ---------------------------------------------------------------- CLI
 def _sampling_record(cfg: AllConfig, model: str) -> dict:
     exp, m = cfg.experiment, cfg.models.models[model]
+    if m.provider == "anthropic":
+        return {"temperature": None, "top_p": None, "seed": None, "effort": cfg.claude.effort,
+                "max_tokens": cfg.claude.max_tokens, "thinking": "adaptive (model default)",
+                "note": "Claude models accept only their default sampling, so none is sent"}
     if m.provider == "openai":
         accepted = cfg.hosted.accepted_params or []
         base = {"temperature": exp.sampling.temperature, "top_p": exp.sampling.top_p}
@@ -231,7 +246,7 @@ def _sampling_record(cfg: AllConfig, model: str) -> dict:
 
 def model_version(cfg: AllConfig, model: str) -> str:
     m = cfg.models.models[model]
-    if m.provider == "openai":
+    if m.provider != "llamacpp":
         return f"{m.name} (response model field recorded per case)"
     return f"{m.repo}@{m.revision}/{m.files[0].name}"
 
@@ -247,28 +262,36 @@ def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT
     if m is None or not m.enabled:
         print(f"model {model!r} is not an enabled model in config/models.yaml")
         return 2
-    hosted = m.provider == "openai"
-    if hosted and cfg.hosted.accepted_params is None:
+    hosted = m.provider != "llamacpp"
+    claude = m.provider == "anthropic"
+    if m.provider == "openai" and cfg.hosted.accepted_params is None:
         print("config/hosted.yaml has no accepted_params: run scripts/hosted_check.py first")
         return 2
     command = f"bash scripts/run_benchmark.sh {model}" + (" --pilot" if pilot else "")
     stamp = make_stamp(command, cfg.experiment.base_seed, cwd=root).to_dict()
-    specs = build_grid(model, cfg.experiment, hosted=hosted, hosted_conditions=cfg.hosted.conditions,
-                       hosted_defenses=cfg.hosted.defenses, pilot=pilot)
+    specs = grid_for(cfg, model, pilot)
     workers = workers or m.workers
     store = ResultsStore(root / ("results/pilot" if pilot else "results/raw") / f"{model}.jsonl")
     config = {"experiment": cfg.experiment.model_dump(mode="json"), "model": {model: m.model_dump(mode="json")},
               "defenses": cfg.defenses.model_dump(mode="json"), "grid_size": len(specs), "workers": workers,
               "pilot": pilot, "sampling": _sampling_record(cfg, model)}
-    if hosted:
+    if claude:
+        config["claude"] = cfg.claude.model_dump(mode="json")
+    elif hosted:
         config["hosted"] = cfg.hosted.model_dump(mode="json")
     resumed = store.open(stamp, config)
     runs = Path(os.environ.get("AIB_RUNS", str(Path.home() / "aib-runs")))
     ctx = RunContext(sampling=_sampling_record(cfg, model), stamp=stamp, defense_cfg=cfg.defenses,
                      model_version=model_version(cfg, model),
                      trace_dir=runs / "traces" / (f"pilot-{model}" if pilot else model), max_iters=cfg.experiment.max_iters)
-    ledger = make_ledger(cfg.hosted, root) if hosted else None
-    if hosted:
+    ledger = None
+    if claude:
+        from aib.claude import make_claude_ledger, make_claude_llm
+
+        ledger = make_claude_ledger(cfg.claude, model, root)
+        shared = make_claude_llm(cfg, model, ledger, purpose=f"benchmark:{model}")
+    elif hosted:
+        ledger = make_ledger(cfg.hosted, root)
         shared = make_hosted_llm(cfg.models, cfg.hosted, cfg.experiment, ledger, purpose=f"benchmark:{model}")
     else:
         sampling = Sampling(cfg.experiment.sampling.temperature, cfg.experiment.sampling.top_p, cfg.experiment.max_tokens,
@@ -290,7 +313,10 @@ def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT
                        on_result=report)
     total = len(store.completed_ids() & {s.case_id for s in specs})
     print(json.dumps({**summary.to_dict(), "complete_in_store": total}, indent=2), flush=True)
-    if hosted and not pilot:
+    if claude and not pilot:  # the Run_Cap is per run: spend_usd is this run's, run_id finds its ledger lines
+        write_hosted_summary(root, store, specs, summary, ledger.total_usd, cfg.claude.run_cap_usd, stamp,
+                             name="claude_run.json", extra={"cap_scope": "run", "run_id": ledger.run_id})
+    elif hosted and not pilot:
         write_hosted_summary(root, store, specs, summary, ledger.total_usd, cfg.hosted.spend_cap_usd, stamp)
     if summary.stopped_at_cap:
         return 3
@@ -298,8 +324,10 @@ def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT
 
 
 def write_hosted_summary(root: Path, store: ResultsStore, specs: list[CaseSpec], summary: RunSummary,
-                         spend: float, cap: float, stamp: dict) -> dict:
-    """results/hosted_run.json: spend reached, the cap, whether the run stopped at the cap, completed cases and Cells."""
+                         spend: float, cap: float, stamp: dict, name: str = "hosted_run.json",
+                         extra: dict | None = None) -> dict:
+    """results/hosted_run.json (results/claude_run.json for Claude): spend reached, the cap, whether the run stopped
+    at the cap, completed cases and Cells."""
     ids = {s.case_id for s in specs}
     records = [r for r in store.records() if r["case_id"] in ids]
     cells: dict[str, dict] = {}
@@ -315,8 +343,9 @@ def write_hosted_summary(root: Path, store: ResultsStore, specs: list[CaseSpec],
         "cells": {k: {"cases": v["cases"], "complete_repetitions": sum(
             1 for rep in v["reps"] if sum(1 for r in records if f"{r['defense']}|{r['condition']}" == k and r["rep"] == rep) == per_cell_tasks)}
             for k, v in sorted(cells.items())},
+        **(extra or {}),
     }
-    path = root / "results" / "hosted_run.json"
+    path = root / "results" / name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
     return out

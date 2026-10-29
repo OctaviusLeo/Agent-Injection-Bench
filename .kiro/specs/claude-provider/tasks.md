@@ -12,7 +12,7 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
 - [x] C3 `ClaudeLLM` (Req C1.1-C1.5)
   - Message conversion, request parameters, response parsing with verbatim replay of Claude's content blocks, refusal records, error mapping and retries, ledger reservation and settlement.
   - Unit tests against a fake client built from the SDK's own response types.
-- [ ] C4 Benchmark wiring and the Claude check (Req C1.6, C1.7, C4.2)
+- [x] C4 Benchmark wiring and the Claude check (Req C1.6, C1.7, C4.2)
   - `run_cli` and the watchdog run the Claude grid with the Claude ledger and client; `results/claude_run.json`; `scripts/claude_check.py`.
   - Unit tests with stubs and fakes.
 - [ ] C5 Judge (Req C3)

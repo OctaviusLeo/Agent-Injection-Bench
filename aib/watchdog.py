@@ -270,7 +270,7 @@ def record_blocker(root: Path, task: str, command: str, reason: str, attempts: l
 
 def main(argv: list[str] | None = None) -> int:
     from aib.config import load_all
-    from aib.experiments import ResultsStore, build_grid
+    from aib.experiments import ResultsStore, grid_for
     from aib.gates import check_store
 
     p = argparse.ArgumentParser(description="Run one model's benchmark under a crash and stall watchdog.")
@@ -282,9 +282,8 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     cfg = load_all(REPO_ROOT / "config")
     m = cfg.models.models[args.model]
-    hosted = m.provider == "openai"
-    specs = build_grid(args.model, cfg.experiment, hosted=hosted, hosted_conditions=cfg.hosted.conditions,
-                       hosted_defenses=cfg.hosted.defenses)
+    hosted = m.provider != "llamacpp"  # no local model server to health-check
+    specs = grid_for(cfg, args.model)
     ids = {s.case_id for s in specs}
     store_path = REPO_ROOT / "results" / "raw" / f"{args.model}.jsonl"
     name = args.name or f"run_{args.model}"
