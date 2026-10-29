@@ -9,7 +9,7 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
 - [x] C2 Configuration (Req C1.2, C2.1)
   - The `anthropic` provider and the `claude-haiku-5-5` entry in `config/models.yaml`; `config/claude.yaml` with the Run_Cap, request settings, grid, ledger, judge, and prices; cross-file checks in `load_all`.
   - Unit tests: the files load; a missing price, an unknown condition, a non-Claude target, or a negative Run_Cap is rejected with an error naming the field.
-- [ ] C3 `ClaudeLLM` (Req C1.1-C1.5)
+- [x] C3 `ClaudeLLM` (Req C1.1-C1.5)
   - Message conversion, request parameters, response parsing with verbatim replay of Claude's content blocks, refusal records, error mapping and retries, ledger reservation and settlement.
   - Unit tests against a fake client built from the SDK's own response types.
 - [ ] C4 Benchmark wiring and the Claude check (Req C1.6, C1.7, C4.2)
