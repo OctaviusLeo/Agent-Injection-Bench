@@ -6,7 +6,7 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
   - `SpendLedger(..., run_id=...)` counts only that run's lines and tags every line it writes; without `run_id` it behaves as before.
   - `Prices` takes an optional tier: above `long_context_tokens` prompt tokens a request is priced at `long_context`.
   - Unit tests for both, and for the unchanged OpenAI behaviour.
-- [ ] C2 Configuration (Req C1.2, C2.1)
+- [x] C2 Configuration (Req C1.2, C2.1)
   - The `anthropic` provider and the `claude-haiku-5-5` entry in `config/models.yaml`; `config/claude.yaml` with the Run_Cap, request settings, grid, ledger, judge, and prices; cross-file checks in `load_all`.
   - Unit tests: the files load; a missing price, an unknown condition, a non-Claude target, or a negative Run_Cap is rejected with an error naming the field.
 - [ ] C3 `ClaudeLLM` (Req C1.1-C1.5)

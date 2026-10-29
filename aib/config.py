@@ -16,7 +16,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = REPO_ROOT / "config"
 
-KNOWN_MODELS = ("qwen3-4b", "llama3.1-8b", "qwen2.5-7b", "gpt-6-luna")
+KNOWN_MODELS = ("qwen3-4b", "llama3.1-8b", "qwen2.5-7b", "gpt-6-luna", "claude-haiku-5-5")
+Effort = Literal["low", "medium", "high", "xhigh", "max"]  # Claude's output_config.effort levels
 KNOWN_DEFENSES = ("none", "delimit", "hierarchy", "filter")
 KNOWN_STYLES = ("direct", "fake_system", "ignore_previous", "important_instructions", "hidden_field")
 KNOWN_CONDITIONS = ("clean", *KNOWN_STYLES)
@@ -146,7 +147,7 @@ class ServerConfig(_Strict):
 
 
 class ModelEntry(_Strict):
-    provider: Literal["llamacpp", "openai"]
+    provider: Literal["llamacpp", "openai", "anthropic"]
     enabled: bool
     name: str
     license: str
@@ -171,9 +172,11 @@ class ModelEntry(_Strict):
                 raise ValueError(f"llamacpp model needs {missing + ([] if self.files else ['files'])}")
             if self.workers != self.parallel:
                 raise ValueError("workers must equal parallel (one worker per server slot)")
-        else:
+        elif self.provider == "openai":
             if not self.base_url or not self.api_key_env:
                 raise ValueError("openai model needs base_url and api_key_env")
+        elif not self.api_key_env:  # anthropic: the SDK knows the endpoint
+            raise ValueError("anthropic model needs api_key_env")
         return self
 
     @property
@@ -256,6 +259,64 @@ class HostedConfig(_Strict):
         return None if v is None else _check_ids(v, KNOWN_HOSTED_PARAMS, "hosted parameter")
 
 
+# ---------------------------------------------------------------- claude.yaml
+class TieredPrices(Prices):
+    """A Claude model's prices; Claude Haiku 5.5 bills prompts over `long_context_tokens` tokens at `long_context`."""
+
+    long_context_tokens: int | None = Field(default=None, ge=1)
+    long_context: Prices | None = None
+
+    @model_validator(mode="after")
+    def _tier(self) -> "TieredPrices":
+        if (self.long_context_tokens is None) != (self.long_context is None):
+            raise ValueError("long_context_tokens and long_context must be set together")
+        return self
+
+
+class JudgeConfig(_Strict):
+    model: str
+    max_tokens: int = Field(ge=1)
+    effort: Effort
+
+
+class ClaudeConfig(_Strict):
+    """config/claude.yaml: the Claude target, its per-run cap, and the second-opinion judge (claude-provider spec)."""
+
+    model: str
+    run_cap_usd: float = Field(ge=0)
+    max_tokens: int = Field(ge=1)
+    effort: Effort
+    conditions: list[str]
+    defenses: list[str]
+    ledger: str
+    worst_case_chars_per_token: float = Field(gt=0)
+    judge: JudgeConfig
+    prices_per_million_usd: dict[str, TieredPrices]
+
+    @field_validator("model")
+    @classmethod
+    def _model(cls, v: str) -> str:
+        _check_ids([v], KNOWN_MODELS, "model")
+        return v
+
+    @field_validator("conditions")
+    @classmethod
+    def _conditions(cls, v: list[str]) -> list[str]:
+        return _check_ids(v, KNOWN_CONDITIONS, "condition")
+
+    @field_validator("defenses")
+    @classmethod
+    def _defenses(cls, v: list[str]) -> list[str]:
+        return _check_ids(v, KNOWN_DEFENSES, "defense")
+
+    @model_validator(mode="after")
+    def _priced(self) -> "ClaudeConfig":
+        missing = [m for m in (self.model, self.judge.model) if m not in self.prices_per_million_usd]
+        if missing:
+            raise ValueError(f"prices_per_million_usd has no entry for {missing}")
+        return self
+
+
 # ---------------------------------------------------------------- defenses.yaml
 class DefenseConfig(_Strict):
     defenses: list[str]
@@ -317,22 +378,28 @@ def load_defenses(path: Path | str | None = None) -> DefenseConfig:
     return _load(DefenseConfig, Path(path) if path else CONFIG_DIR / "defenses.yaml")
 
 
+def load_claude(path: Path | str | None = None) -> ClaudeConfig:
+    return _load(ClaudeConfig, Path(path) if path else CONFIG_DIR / "claude.yaml")
+
+
 class AllConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
     experiment: ExperimentConfig
     models: ModelsConfig
     hosted: HostedConfig
     defenses: DefenseConfig
+    claude: ClaudeConfig | None = None
 
 
 def load_all(config_dir: Path | str | None = None) -> AllConfig:
-    """Load the four files and check that they agree with each other."""
+    """Load the four files, and config/claude.yaml when present, and check that they agree with each other."""
     d = Path(config_dir) if config_dir else CONFIG_DIR
     cfg = AllConfig(
         experiment=load_experiment(d / "experiment.yaml"),
         models=load_models(d / "models.yaml"),
         hosted=load_hosted(d / "hosted.yaml"),
         defenses=load_defenses(d / "defenses.yaml"),
+        claude=load_claude(d / "claude.yaml") if (d / "claude.yaml").exists() else None,
     )
     problems = []
     hosted_model = cfg.models.models.get(cfg.hosted.model)
@@ -349,6 +416,21 @@ def load_all(config_dir: Path | str | None = None) -> AllConfig:
         cfg.models.classifier.revision,
     ):
         problems.append("defenses.classifier_repo/classifier_revision: differ from models.classifier")
+    claude_models = [k for k, m in cfg.models.models.items() if m.provider == "anthropic" and m.enabled]
+    if cfg.claude is None:
+        if claude_models:
+            problems.append(f"models: {claude_models} need config/claude.yaml")
+    else:
+        target = cfg.models.models.get(cfg.claude.model)
+        if target is None or target.provider != "anthropic":
+            problems.append(f"claude.model: {cfg.claude.model} is not an anthropic model in models.yaml")
+        if not set(cfg.claude.conditions) <= set(cfg.experiment.conditions):
+            problems.append("claude.conditions: not a subset of experiment.conditions")
+        if not set(cfg.claude.defenses) <= set(cfg.experiment.defenses):
+            problems.append("claude.defenses: not a subset of experiment.defenses")
+        unpriced = [k for k in claude_models if k not in cfg.claude.prices_per_million_usd]
+        if unpriced:
+            problems.append(f"claude.prices_per_million_usd: no prices for {unpriced}")
     if problems:
         raise ConfigError(f"{d}: " + "; ".join(problems))
     return cfg

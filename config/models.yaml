@@ -68,6 +68,14 @@ models:
     license: OpenAI terms of use
     workers: 2
     timeout_s: 120
+  claude-haiku-5-5:            # Claude target (.kiro/specs/claude-provider), billed to the owner's Anthropic API credit
+    provider: anthropic
+    enabled: true
+    name: claude-haiku-5-5
+    api_key_env: ANTHROPIC_FOREVER_API_KEY   # a Windows user variable, forwarded into WSL with WSLENV (docs/ENVIRONMENT.md)
+    license: Anthropic Commercial Terms of Service
+    workers: 2
+    timeout_s: 120
 classifier:
   repo: protectai/deberta-v3-base-prompt-injection-v2
   revision: 90c9989b1a342275dd0d1a95aad283c04e075671

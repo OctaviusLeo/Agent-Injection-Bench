@@ -120,3 +120,55 @@ def test_pilot_tasks_must_be_in_the_grid(cfg_dir):
     _edit(cfg_dir / "experiment.yaml", lambda d: d["pilot"].__setitem__("user_tasks", ["user_task_99"]))
     with pytest.raises(C.ConfigError, match="pilot"):
         C.load_experiment(cfg_dir / "experiment.yaml")
+
+
+def test_claude_file_loads_and_agrees_with_models():
+    cfg = C.load_all()
+    assert cfg.claude.model == "claude-haiku-5-5" and cfg.claude.run_cap_usd == 5.00
+    assert cfg.models.models["claude-haiku-5-5"].provider == "anthropic"
+    assert cfg.models.local_models() == ["qwen3-4b", "qwen2.5-7b"]  # the Claude entry is not a local model
+    haiku = cfg.claude.prices_per_million_usd["claude-haiku-5-5"]
+    assert haiku.long_context_tokens == 100_000 and haiku.long_context.output == 2.50
+    assert cfg.claude.judge.model == "claude-sonnet-5-5" and cfg.claude.judge.model in cfg.claude.prices_per_million_usd
+
+
+@pytest.mark.parametrize(
+    "edit,field",
+    [
+        (lambda d: d.__setitem__("run_cap_usd", -1), "run_cap_usd"),
+        (lambda d: d.__setitem__("conditions", ["clean", "nope"]), "conditions"),
+        (lambda d: d.__setitem__("effort", "extreme"), "effort"),
+        (lambda d: d["prices_per_million_usd"].pop("claude-sonnet-5-5"), "prices_per_million_usd"),
+        (lambda d: d["prices_per_million_usd"]["claude-haiku-5-5"].pop("long_context"), "long_context"),
+    ],
+)
+def test_invalid_claude_values_are_rejected_naming_the_field(cfg_dir, edit, field):
+    _edit(cfg_dir / "claude.yaml", edit)
+    with pytest.raises(C.ConfigError, match=field):
+        C.load_claude(cfg_dir / "claude.yaml")
+
+
+def test_anthropic_model_needs_key_env(cfg_dir):
+    _edit(cfg_dir / "models.yaml", lambda d: d["models"]["claude-haiku-5-5"].pop("api_key_env"))
+    with pytest.raises(C.ConfigError, match="anthropic model needs api_key_env"):
+        C.load_models(cfg_dir / "models.yaml")
+
+
+def test_claude_cross_file_checks(cfg_dir):
+    def openai_target(d):
+        d["model"] = "gpt-6-luna"
+        d["prices_per_million_usd"]["gpt-6-luna"] = d["prices_per_million_usd"].pop("claude-haiku-5-5")
+    _edit(cfg_dir / "claude.yaml", openai_target)
+    _edit(cfg_dir / "experiment.yaml", lambda d: d["conditions"].remove("important_instructions"))
+    with pytest.raises(C.ConfigError, match="claude.model: gpt-6-luna is not an anthropic model") as err:
+        C.load_all(cfg_dir)
+    assert "claude.conditions: not a subset" in str(err.value)
+    assert "claude.prices_per_million_usd: no prices for ['claude-haiku-5-5']" in str(err.value)
+
+
+def test_claude_file_is_needed_only_for_an_enabled_claude_model(cfg_dir):
+    (cfg_dir / "claude.yaml").unlink()
+    with pytest.raises(C.ConfigError, match="need config/claude.yaml"):
+        C.load_all(cfg_dir)
+    _edit(cfg_dir / "models.yaml", lambda d: d["models"]["claude-haiku-5-5"].__setitem__("enabled", False))
+    assert C.load_all(cfg_dir).claude is None
