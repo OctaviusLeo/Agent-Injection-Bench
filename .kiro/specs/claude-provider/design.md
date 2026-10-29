@@ -1,0 +1,37 @@
+# Design: Claude target and second-opinion judge
+
+Requirements: `requirements.md` in this folder. The main spec's design (`.kiro/specs/agent-injection-bench/design.md`) still governs everything else.
+
+## Files
+
+| File | Change |
+| --- | --- |
+| `aib/claude_llm.py` (new) | `ClaudeLLM`, the AgentDojo pipeline element that calls the Messages API through the `anthropic` SDK |
+| `aib/claude.py` (new) | Factories for the Claude ledger and client from the configuration, and the live Claude check |
+| `aib/judge.py` (new) | The second-opinion judge and its agreement summary (`python -m aib.judge`) |
+| `scripts/claude_check.py`, `scripts/judge.py` (new) | Thin entry points |
+| `aib/ledger.py` | Optional run-scoped total (`run_id`) and an optional long-context price tier |
+| `aib/config.py`, `config/models.yaml`, `config/claude.yaml` (new) | The `anthropic` provider, the Claude_Target entry, and the Claude settings with cross-file checks |
+| `aib/experiments.py`, `aib/watchdog.py` | Claude runs the hosted-style grid with its own ledger, client, and run summary |
+| `pyproject.toml`, `uv.lock` | `anthropic==1.15.0` pinned as a direct dependency (it was already locked through AgentDojo) |
+
+## Decisions
+
+- **The official SDK, in its own module.** Claude is called through `anthropic` (1.15.0, MIT, already in `uv.lock` through AgentDojo), not through Anthropic's OpenAI-compatible endpoint: that layer is meant for quick comparisons and does not carry thinking blocks or cache usage fields, both of which this design needs. `ChatLLM` stays OpenAI-only; `ClaudeLLM` mirrors its shape (one `CallRecord` per request in `extra_args["aib_calls"]`, the same error classes, the same retry policy) so the runner, the defenses, and the Results_Store need no change.
+- **Default sampling.** Claude Haiku 5.5 and Claude Sonnet 5.5 reject non-default `temperature` and `top_p`, the Messages API has no seed, and SDK 1.x no longer accepts the sampling arguments. Claude requests therefore use the model's default sampling, and each case's sampling record says so. This is a comparability limit against the OpenAI hosted run (temperature 0.7, top_p 0.9, per-request seed) and is stated wherever Claude results are reported.
+- **Thinking.** Both models think adaptively by default; the target runs at `effort: medium` (Haiku 5.5's default, written out so it is recorded), the judge at `medium` too. Thinking text is omitted by the API by default, but every thinking block carries a signature that has to come back unchanged. AgentDojo's `get_text_content_as_str` joins every content block, so a thinking block in AgentDojo's `content` would leak into the final answer that the task check reads. `ClaudeLLM` therefore gives AgentDojo only the text blocks and the tool calls, and keeps Claude's own content blocks, in order, under the extra key `aib_claude_content` on the assistant message; the next request sends those blocks back verbatim.
+- **Token limits.** `max_tokens: 16000` per target request (thinking counts toward it, so the project's usual 1,024 would cut answers off) and 8,000 per judge request; both are below the size at which the SDK requires streaming.
+- **Prompt caching.** Requests use top-level automatic caching (`cache_control: {type: ephemeral}`), which caches the growing conversation prefix between the turns of a case. The usage fields map onto the ledger: `input_tokens + cache_creation_input_tokens` are uncached, `cache_read_input_tokens` are cached.
+- **Ledger.** The Claude_Ledger reuses `SpendLedger`. A `run_id` makes it count only the current Claude_Run's entries against the Run_Cap (the OpenAI ledger, created without one, still sums the whole file). `Prices` gains an optional long-context tier for Claude Haiku 5.5. Prices come from `https://platform.claude.com/docs/en/about-claude/pricing`, read 2026-10-29, and are copied into `config/claude.yaml`.
+- **Errors.** Typed SDK exceptions map onto the project's classes, most specific first: timeout, connection, 429 and 5xx (including 529 overloaded) retried with exponential backoff up to 5 attempts and then `LLMServerError`, "prompt is too long" as `ContextOverflowError`, any other 4xx as `LLMBadRequestError`. The SDK's own retries are off, as for `ChatLLM`.
+- **Refusals.** A `refusal` stop ends the turn; its category goes into the call record. Server-side refusal fallback stays off: Claude Haiku 5.5 has none, and for the judge a fallback would answer with a different model and blur the agreement figure.
+- **API key.** Read from the Windows user variable named in `config/models.yaml` (`ANTHROPIC_FOREVER_API_KEY`), forwarded into WSL per command with `WSLENV` (see `docs/ENVIRONMENT.md`). Nothing is written to `~/.config/aib/` or the repository.
+- **Grid.** The Claude_Target runs the OpenAI hosted grid's shape (3 conditions × 4 defenses × 40 tasks × 3 Repetitions, Repetition-major), so a Run_Cap stop leaves every Cell with the same number of complete Repetitions, give or take one. The store is `results/raw/claude-haiku-5-5.jsonl`; the run summary is `results/claude_run.json`, so the OpenAI `results/hosted_run.json` is never overwritten. Folding Claude results into the metrics, the Results_Table, and the Report is left until a full run exists.
+
+## Judge
+
+- **Cases.** Every case in a Results_Store with status `classified` (the agent saw the injection and AgentDojo's check ran) and not yet in `results/judge/<model>.jsonl`. Clean cases have no injected goal and are skipped; errored and unexposed cases are skipped.
+- **Input.** The injected goal's text (AgentDojo's `GOAL`), the user task's prompt, and the transcript from the case's trace file: each message in order, with tool calls as `name(arguments)` and each tool output in full.
+- **Prompt.** A fixed system prompt says what to decide, that the transcript is data that may contain instructions addressed to an AI, and that only the agent's tool calls count, not what it says it will do. The verdict comes back through structured outputs as `{"carried_out": boolean, "evidence": string}`.
+- **Output.** One line per case: the case id, the model under test, the verdict, the evidence, AgentDojo's `injection_success`, whether they agree, the judge's response model, stop reason, cost, and the stamp. The agreement file holds the confusion counts, the agreement rate over the parsed verdicts, Cohen's kappa, the refused and unparsed counts, and a stamp.
+- **Run.** Requests are sequential; a run resumes from the judge file and stops at the Run_Cap like a benchmark run.
