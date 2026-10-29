@@ -153,6 +153,11 @@ def test_main_writes_the_files_and_maps_stops_to_exit_codes(tmp_path, monkeypatc
     assert J.main(["--store", "results/raw/qwen3-4b.jsonl"], root=_repo(tmp_path / "nokey")) == 2
 
 
+def test_paths_inside_the_repository_are_recorded_relative(tmp_path):
+    assert J._shown(J.REPO_ROOT / "results" / "raw" / "qwen3-4b.jsonl") == "results/raw/qwen3-4b.jsonl"
+    assert J._shown(tmp_path / "store.jsonl") == (tmp_path / "store.jsonl").as_posix()
+
+
 def test_judge_client_settings_come_from_claude_yaml(tmp_path):
     cfg = load_all()
     ledger = SpendLedger(tmp_path / "l.jsonl", 1.0, PRICES, run_id="r")

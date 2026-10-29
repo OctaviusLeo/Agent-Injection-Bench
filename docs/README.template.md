@@ -94,7 +94,7 @@ bash scripts/build_results.sh
 | Hosted run summary, `results/hosted_run.json` | `bash scripts/run_benchmark.sh gpt-6-luna` |
 | Claude run summary, `results/claude_run.json` | `bash scripts/run_benchmark.sh claude-haiku-5-5` |
 | Claude check, `results/claude_check.json` | `uv run --frozen python scripts/claude_check.py` |
-| Second-opinion verdicts and agreement, `results/judge/<model key>.jsonl` and `results/judge/<model key>_agreement.json` | `uv run --frozen python scripts/judge.py --store results/raw/<model key>.jsonl` |
+| Second-opinion verdicts and agreement, `results/judge/<model key>.jsonl` and `results/judge/<model key>_agreement.json` | `uv run --frozen python -m aib.judge --store results/raw/<model key>.jsonl` |
 | Classifier check on ground-truth outputs, `results/m3_filter_calibration.json` | `uv run --frozen python scripts/filter_calibration.py` |
 | Stub_Model validation, `results/m2_stub_validation.json` | `uv run --frozen python scripts/stub_validation.py` |
 | Task catalog, `results/m1_catalog.json` | `uv run --frozen python scripts/catalog.py` |

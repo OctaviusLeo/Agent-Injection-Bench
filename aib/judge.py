@@ -137,6 +137,14 @@ def agreement(verdicts: list[dict]) -> dict:
             "cohens_kappa": kappa}
 
 
+def _shown(path: Path) -> str:
+    """A path relative to the repository when it lies inside it, so committed results do not name this machine."""
+    try:
+        return Path(path).resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return Path(path).as_posix()
+
+
 def _read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -183,7 +191,7 @@ def run_judge(store_path: Path, llm: ClaudeLLM, out_dir: Path, stamp: dict, limi
         consecutive = 0
         _append(out, {**verdict, "stamp": stamp})
         judged += 1
-    summary = {"stamp": stamp, "store": Path(store_path).as_posix(), "verdicts": out.as_posix(),
+    summary = {"stamp": stamp, "store": _shown(store_path), "verdicts": _shown(out),
                **agreement(_read_jsonl(out)),
                "run": {"to_judge": len(todo), "judged": judged, "missing_traces": missing_traces, "failures": failures,
                        "stopped": stop_reason is not None, "stop_reason": stop_reason,
