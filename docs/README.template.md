@@ -5,7 +5,7 @@
 
 A reproducible benchmark that measures how often tool-using LLM agents follow instructions planted in tool outputs (indirect prompt injection), and how much each defense lowers that rate without hurting legitimate task success. Every tool is simulated: nothing reaches a real account, website, or system.
 
-It runs {{n_user_tasks}} user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under {{n_styles}} injection styles and a clean control, with {{n_defenses}} defenses, on {{n_models}} models: two open-weight Qwen models served locally by llama.cpp, and an OpenAI hosted model (API model ID `{{hosted_model}}`), queried {{hosted_dates}} on {{hosted_styles}} of the styles to stay within its spend cap. That is {{n_records}} scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
+It runs {{n_user_tasks}} user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under {{n_styles}} injection styles and a clean control, with {{n_defenses}} defenses, on {{n_models}} models: two open-weight Qwen models served locally by llama.cpp, and {{hosted_models}}. That is {{n_records}} scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
 
 ## Results
 
@@ -74,6 +74,8 @@ uv sync --frozen
 uv run --frozen python scripts/fetch_models.py
 bash scripts/run_all_local.sh
 bash scripts/run_benchmark.sh gpt-6-luna
+bash scripts/run_benchmark.sh claude-haiku-5-5
+uv run --frozen python -m aib.judge --store results/raw/<model key>.jsonl
 bash scripts/build_results.sh
 ```
 

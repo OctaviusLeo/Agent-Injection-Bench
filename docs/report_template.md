@@ -15,7 +15,7 @@ Tool-using agents read emails, calendar entries, and files that other people can
 
 ## Setup
 
-**Environment.** All tools are simulated. The sandbox is AgentDojo's workspace suite (an email, calendar, and cloud-drive assistant for the fictional user Emma Johnson), pinned as `agentdojo==0.1.35` at benchmark version `v1.2.2` with the `v1.1.2` task fixes registered. It provides {{n_user_tasks}} user tasks and {{n_tools}} tools over in-memory state loaded from a local fixture; nothing reaches a real account or website. Each user task has a deterministic success check (its AgentDojo `utility` predicate); no LLM judges any outcome.
+**Environment.** All tools are simulated. The sandbox is AgentDojo's workspace suite (an email, calendar, and cloud-drive assistant for the fictional user Emma Johnson), pinned as `agentdojo==0.1.35` at benchmark version `v1.2.2` with the `v1.1.2` task fixes registered. It provides {{n_user_tasks}} user tasks and {{n_tools}} tools over in-memory state loaded from a local fixture; nothing reaches a real account or website. Each user task has a deterministic success check (its AgentDojo `utility` predicate); no LLM judges any outcome. (The second-opinion judge under Results only measures how often an LLM agrees with the injection checks.)
 
 **Attacks.** An injection is planted only in the fixture fields that the user task's own ground-truth tool calls read, so it reaches the agent inside a tool output and never in the user's request. There are {{n_styles}} Injection_Styles, all generic published templates or a simple variant: a direct "TODO" instruction, a fake system message, InjecAgent's "ignore previous instructions" sentence, AgentDojo's "important instructions" message, and an instruction hidden in an HTML comment. Each user task is paired with one of {{n_goals}} Injected_Goals, AgentDojo's workspace injection tasks: benign sandbox actions such as emailing an outside address, deleting a cloud file, creating a calendar event, or forwarding a fixture email. Each goal has a deterministic check over the final sandbox state and the tool-call trace. A clean control runs the same tasks with no injection.
 
@@ -27,9 +27,9 @@ Tool-using agents read emails, calendar entries, and files that other people can
 
 {{models_table}}
 
-**Sampling and repetitions.** Every model ran with temperature {{temperature}} and top-p {{top_p}}; the local models also used top-k {{top_k}} and min-p {{min_p}}, so only temperature and top-p shape their sampling. Each request carried a seed derived from the case seed. The agent loop allowed at most {{max_iters}} model calls per case and {{max_tokens}} output tokens per call. Outputs vary between runs, so every Cell (a model, defense, and condition) ran {{repetitions}} Repetitions of each task.
+**Sampling and repetitions.** {{sampling_statement}} The agent loop allowed at most {{max_iters}} model calls per case. Outputs vary between runs, so every Cell (a model, defense, and condition) ran {{repetitions}} Repetitions of each task.
 
-**Hosted model scope.** {{hosted_statement}}
+**Hosted runs.** {{hosted_statement}}
 
 **Statistics.** Each rate has a 95% interval from a task-clustered percentile bootstrap ({{resamples}} resamples; the {{repetitions}} Repetitions of a task are resampled together because they are not independent). Defense_Cost (TSR under `none` minus TSR under the defense) and ASR reduction use a paired bootstrap that resamples one set of tasks for both conditions. A rate with no successes would get a zero-width bootstrap interval, so it reports the exact one-sided 95% upper bound (Clopper-Pearson, treating cases as independent) instead, marked † in the tables. The base seed is {{metrics_seed}}.
 
@@ -61,6 +61,8 @@ Tool-using agents read emails, calendar entries, and files that other people can
 
 The full per-Cell table, with exposure, unclassified and errored counts, and Repetitions, is `results/summary.md`.
 
+**Second-opinion judge.** {{judge_section}}
+
 ## Limitations
 
 {{limitations}}
@@ -69,10 +71,10 @@ The full per-Cell table, with exposure, unclassified and errored counts, and Rep
 
 - **Construct validity.** The success checks are AgentDojo's predicates. Many are strict about side effects, so an agent that completes the user's task but also carries out the injected goal can fail the task check; Defense_Cost under attack therefore mixes the defense's own cost with the attack's. The clean-condition cost isolates the defense.
 - **Exposure conditioning.** ASR is computed over exposed cases only. A model that rarely reads the injected data has fewer classified cases and wider intervals; exposure rates are reported beside every ASR in `results/summary.md` so the two can be read together.
-- **Sampling variability.** Model outputs were sampled, not greedy; llama.cpp batching and the hosted provider are not bit-reproducible. The Repetitions and the task-clustered intervals account for this, but a rerun will not reproduce identical per-case outcomes.
+- **Sampling variability.** Model outputs were sampled, not greedy; llama.cpp batching and the hosted providers are not bit-reproducible. The Repetitions and the task-clustered intervals account for this, but a rerun will not reproduce identical per-case outcomes.
 - **Statistical scope.** The intervals cover the {{n_user_tasks}} tasks of one suite; many Cells are compared without a multiple-comparison correction, so an isolated interval that excludes zero should be read as suggestive.
 - **Filter calibration.** The classifier's threshold was fixed before any run and never tuned; on ground-truth tool outputs with no injection it flagged {{calibration_clean_flagged}} of {{calibration_clean_outputs}} outputs (`results/m3_filter_calibration.json`), which shows up as benign cost.
-- **External validity.** Results describe one email, calendar, and drive assistant environment, two small quantized local models, and one hosted model alias at one point in time.
+- **External validity.** Results describe one email, calendar, and drive assistant environment, {{external_validity}}.
 
 ## Responsible disclosure and scope
 
@@ -81,6 +83,7 @@ This report gives aggregate rates and defense effects only. The injection texts 
 ## Reproduce
 
 ```bash
-bash scripts/run_benchmark.sh <model key>   # once per model: qwen3-4b, the 8B-slot model, gpt-6-luna
+bash scripts/run_benchmark.sh <model key>   # once per model: qwen3-4b, the 8B-slot model, gpt-6-luna, claude-haiku-5-5
+uv run --frozen python -m aib.judge --store results/raw/<model key>.jsonl   # second-opinion verdicts, per judged store
 bash scripts/build_results.sh               # metrics, Results_Table, plots, this Report, README, traceability check
 ```

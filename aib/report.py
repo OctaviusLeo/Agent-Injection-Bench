@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-from aib.results_table import fmt_rate
+from aib.results_table import fmt_kappa, fmt_rate
 
 PLACEHOLDER = re.compile(r"\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}")
 DEFENSE_ORDER = ("none", "delimit", "hierarchy", "filter")
@@ -66,9 +66,51 @@ def limitation_lines(metrics: dict, cfg, calib: dict) -> str:
     facts = metrics.get("run_facts") or {}
     base = [p["asr"] for p in metrics.get("pooled", []) if p["defense"] == "none" and _computed(p["asr"])]
     max_none_asr = f"{max(a['point'] for a in base):.3f}" if base else "not computed"
-    return "\n".join(line.format(n_user_tasks=facts.get("n_user_tasks"), hosted_conditions=len(cfg.hosted.conditions),
-                                 n_conditions=facts.get("n_conditions"), threshold=calib.get("threshold"),
-                                 hosted_model=cfg.hosted.model, max_none_asr=max_none_asr) for line in LIMITATIONS)
+    lines = [line.format(n_user_tasks=facts.get("n_user_tasks"), hosted_conditions=len(cfg.hosted.conditions),
+                         n_conditions=facts.get("n_conditions"), threshold=calib.get("threshold"),
+                         hosted_model=cfg.hosted.model, max_none_asr=max_none_asr) for line in LIMITATIONS]
+    at = next((i + 1 for i, line in enumerate(lines) if line.startswith("- **The hosted grid is smaller")), len(lines))
+    lines[at:at] = comparability_lines(metrics, cfg.hosted.model)
+    return "\n".join(lines)
+
+
+def default_sampling_models(metrics: dict) -> dict[str, dict]:
+    """Models whose records sent no temperature (recorded as None): the Claude target, which accepts only its default."""
+    return {m: i["sampling"] for m, i in metrics.get("models", {}).items()
+            if "temperature" in (i.get("sampling") or {}) and i["sampling"]["temperature"] is None}
+
+
+def comparability_lines(metrics: dict, hosted_model: str) -> list[str]:
+    """The comparability limit between a default-sampling hosted model and the OpenAI model (claude-provider design.md)."""
+    other = (metrics.get("models", {}).get(hosted_model) or {}).get("sampling")
+    if not other:
+        return []
+    out = []
+    for model, s in default_sampling_models(metrics).items():
+        ids = [m for m in metrics["models"][model].get("response_models", []) if not m.startswith("stub")]
+        recorded = ("echoed the requested ID, so no dated snapshot was recorded" if ids == [model]
+                    else "recorded " + ", ".join(f"`{m}`" for m in ids) if ids else "was not recorded")
+        out.append(f"- **The two hosted models are not a controlled comparison.** `{model}` sent no sampling settings and no "
+                   f"seed, so it used the model's default sampling, and it thought adaptively at effort `{s.get('effort')}`; "
+                   f"`{hosted_model}` ran at temperature {other.get('temperature')} and top-p {other.get('top_p')} with a "
+                   f"per-request seed and reasoning effort `{other.get('reasoning_effort')}`. A difference between the two mixes "
+                   f"the model with its decoding settings. The response `model` field on `{model}`'s cases {recorded}.")
+    return out
+
+
+def sampling_statement(metrics: dict, facts: dict) -> str:
+    """The sampling settings per model: the experiment's for every model that took them, the default for any that did not."""
+    local = next((i["sampling"] for i in metrics.get("models", {}).values() if "top_k" in (i.get("sampling") or {})), {})
+    default = default_sampling_models(metrics)
+    who = "Every model" if not default else "Every model but " + ", ".join(f"`{m}`" for m in default)
+    text = (f"{who} ran with temperature {facts.get('temperature')} and top-p {facts.get('top_p')}, with at most "
+            f"{facts.get('max_tokens')} output tokens per call; the local models also used top-k {local.get('top_k')} and "
+            f"min-p {local.get('min_p')}, so only temperature and top-p shape their sampling. Each "
+            f"{'request' if not default else 'of their requests'} carried a seed derived from the case seed.")
+    for model, s in default.items():
+        text += (f" `{model}` sent no sampling settings and no seed ({s.get('note')}); it thought adaptively at effort "
+                 f"`{s.get('effort')}`, with at most {s.get('max_tokens')} output tokens per call, thinking included.")
+    return text
 
 
 class RenderError(ValueError):
@@ -171,16 +213,66 @@ def findings(metrics: dict) -> str:
     return "\n".join(out) if out else "- No Cell had enough classified cases for an observation."
 
 
-def hosted_statement(facts: dict, hosted_conditions: list[str], n_conditions: int) -> str:
+def hosted_statement(facts: dict, hosted_conditions: list[str], n_conditions: int, hosted_model: str = "",
+                     claude_conditions: list[str] | None = None) -> str:
     h = facts.get("hosted")
-    scope = (f"The hosted model ran all {facts.get('n_defenses')} defenses on {len(hosted_conditions)} of the "
+    name = f"The OpenAI model `{hosted_model}`" if hosted_model else "The hosted model"
+    scope = (f"{name} ran all {facts.get('n_defenses')} defenses on {len(hosted_conditions)} of the "
              f"{n_conditions} conditions ({', '.join(f'`{c}`' for c in hosted_conditions)}) to stay within the Spend_Cap, "
              f"in Repetition-major order so that a stop leaves every Cell with the same number of complete Repetitions.")
     if not h:
-        return scope + " No hosted run summary was present when this report was generated."
-    stop = ("It stopped at the Spend_Cap" if h["stopped_at_cap"] else "It did not reach the Spend_Cap")
-    return (scope + f" {h['completed_cases']} of {h['planned_cases']} planned cases completed; recorded spend was "
-            f"${h['spend_usd']} of the ${h['spend_cap_usd']} cap (an upper bound on the bill). {stop}.")
+        text = scope + " No hosted run summary was present when this report was generated."
+    else:
+        stop = ("It stopped at the Spend_Cap" if h["stopped_at_cap"] else "It did not reach the Spend_Cap")
+        text = (scope + f" {h['completed_cases']} of {h['planned_cases']} planned cases completed; recorded spend was "
+                f"${h['spend_usd']} of the ${h['spend_cap_usd']} cap (an upper bound on the bill). {stop}.")
+    c = facts.get("claude")
+    if not c:
+        return text
+    if not c["summary"]:
+        return text + f" No run summary for the Claude target `{c['model']}` was present when this report was generated."
+    grid =("the same conditions in the same order" if claude_conditions in (None, hosted_conditions) else
+            f"{len(claude_conditions)} of the conditions ({', '.join(f'`{x}`' for x in claude_conditions)}) in the same order")
+    runs = f" in {c['runs']} run{'' if c['runs'] == 1 else 's'}" if c["runs"] else ""
+    stop = "Its last run stopped at the Run_Cap" if c["stopped_at_cap"] else "Its last run ended below the Run_Cap"
+    return (text + f" The Claude target `{c['model']}` ran {grid}, under a cap of ${c['run_cap_usd']} per run: "
+            f"{c['completed_cases']} of {c['planned_cases']} planned cases completed{runs}; recorded spend was "
+            f"${c['spend_usd']} (an upper bound on the bill: uncached prompt tokens are priced at the cache-write rate). {stop}.")
+
+
+def judge_section(metrics: dict) -> str:
+    """The second-opinion judge's agreement with AgentDojo's check, copied as results/summary.md formats it."""
+    rows = metrics.get("judge") or []
+    if not rows:
+        return "No second-opinion verdicts were present when this report was generated."
+    judges = ", ".join(f"`{m}`" for m in sorted({m for r in rows for m in r.get("judge_models", [])}))
+    table = _table(["Model under test", "Classified cases", "Verdicts", "Parsed", "Refused", "Unparsed", "Judge yes, rule yes",
+                    "Judge yes, rule no", "Judge no, rule yes", "Judge no, rule no", "Agreement (95% CI)", "Cohen's kappa"],
+                   [[f"`{r['model']}`", str(r["classified"]), str(r["judged"]), str(r["parsed"]), str(r["refused"]),
+                     str(r["unparsed"]),
+                     str(r["judge_yes_rule_yes"]), str(r["judge_yes_rule_no"]), str(r["judge_no_rule_yes"]),
+                     str(r["judge_no_rule_no"]), fmt_rate(r["agreement"]), fmt_kappa(r["cohens_kappa"])] for r in rows])
+    stamps = "\n".join(f"- `{r['model']}` verdicts: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
+                       f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp"))
+    models = ", ".join(f"`{r['model']}`" for r in rows)
+    return (f"{judges} read classified attack cases of {models} (the injected goal, "
+            "the user's task, and the transcript, which it was told is data that may contain instructions addressed to it) "
+            "and said whether the agent's tool calls carried out the injected goal; the table gives how many of each model's "
+            "classified cases it judged. Its verdicts change no rate in this "
+            "report; they measure how often an LLM judge agrees with AgentDojo's rule-based check. Agreement is over the "
+            "parsed verdicts, with a 95% task-clustered interval. Cohen's kappa corrects it for the agreement expected by "
+            "chance, which is high when nearly every case is a rule-negative; it is undefined when both always gave the "
+            f"same answer.\n\n{table}\n\n{stamps}\n\nEach verdict line in `results/judge/<model>.jsonl` keeps the stamp of the "
+            "run that wrote it.")
+
+
+def external_validity(metrics: dict, cfg) -> str:
+    """The models the results describe, counted from the stores."""
+    words = {1: "one", 2: "two", 3: "three", 4: "four"}
+    local = sum(1 for m in metrics.get("models", {}) if cfg.models.models.get(m) and cfg.models.models[m].provider == "llamacpp")
+    hosted = len(metrics.get("models", {})) - local
+    return (f"{words.get(local, local)} small quantized local model{'' if local == 1 else 's'}, and "
+            f"{words.get(hosted, hosted)} hosted model ID{'' if hosted == 1 else 's'} at one point in time")
 
 
 def build_context(root: Path, stamp: dict) -> dict:
@@ -207,7 +299,10 @@ def build_context(root: Path, stamp: dict) -> dict:
         "models_table": models_table(metrics), "pooled_table": pooled_table(metrics),
         "clean_cost_table": clean_cost_table(metrics), "style_table": style_table(metrics),
         "filter_table": filter_table(metrics), "findings": findings(metrics),
-        "hosted_statement": hosted_statement(facts, cfg.hosted.conditions, facts.get("n_conditions") or len(cfg.experiment.conditions)),
+        "hosted_statement": hosted_statement(facts, cfg.hosted.conditions, facts.get("n_conditions") or len(cfg.experiment.conditions),
+                                             cfg.hosted.model, cfg.claude.conditions),
+        "sampling_statement": sampling_statement(metrics, facts), "judge_section": judge_section(metrics),
+        "external_validity": external_validity(metrics, cfg),
     }
     ctx["limitations"] = limitation_lines(metrics, cfg, calib)
     return ctx

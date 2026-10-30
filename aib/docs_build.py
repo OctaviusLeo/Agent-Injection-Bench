@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 from aib.report import _computed, limitation_lines, render
-from aib.results_table import fmt_rate
+from aib.results_table import fmt_kappa, fmt_rate
 
 _STAMP = re.compile(r"^- (Table|Metrics): command `(?P<command>[^`]*)`, seed (?P<seed>\S+), commit `(?P<commit>[0-9a-f]{40})`\.$",
                     re.M)
@@ -91,16 +91,42 @@ def headline(metrics: dict) -> str:
         moved += [f"`{c['model']}` under `{c['defense']}`, attack-success reduction {fmt_rate(c['asr_reduction'])}"
                   + (" (attack success rose)" if c["asr_reduction"]["upper"] < 0 else "") for c in asr_moved]
         out.append(line + ("; the exceptions: " + "; ".join(moved) if moved else "") + ".")
+    judged = [j for j in metrics.get("judge", []) if _computed(j.get("agreement"))]
+    if judged:
+        judges = ", ".join(f"`{m}`" for m in sorted({m for j in judged for m in j.get("judge_models", [])}))
+        out.append(f"- **Second-opinion judge:** {judges}, asked whether the agent's tool calls carried out the injected goal, "
+                   "agreed with AgentDojo's rule-based check on " + ", ".join(
+                       f"`{j['model']}` {j['agreement']['successes']} of {j['agreement']['n']} parsed verdicts, "
+                       f"{fmt_rate(j['agreement'])}, Cohen's kappa {fmt_kappa(j['cohens_kappa'])}"
+                       + (f" ({j['judged']} of {j['classified']} classified cases judged)" if j["judged"] < j["classified"] else "")
+                       for j in judged)
+                   + ". The judge changes no rate; its confusion counts are in the Report.")
     return "\n".join(out) if out else "- No pooled comparison had enough classified cases for a finding."
 
 
-def hosted_dates(ledger: Path, model: str) -> str:
+def hosted_dates(ledger: Path, model: str, label: str = "results/hosted_ledger.jsonl") -> str:
     """The UTC date range of the hosted benchmark requests, from the spend ledger."""
     rows = [json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines() if line.strip()] if ledger.exists() else []
     days = sorted({r["ts"][:10] for r in rows if r.get("purpose") == f"benchmark:{model}"})
     if not days:
-        return "on the dates recorded in `results/hosted_ledger.jsonl`"
+        return f"on the dates recorded in `{label}`"
     return f"on {days[0]} (UTC)" if days[0] == days[-1] else f"from {days[0]} to {days[-1]} (UTC)"
+
+
+def hosted_models(root: Path, cfg, facts: dict) -> str:
+    """The README's hosted-model clause: the OpenAI model alone, or both hosted models with the dates each was queried."""
+    styles = len([c for c in cfg.hosted.conditions if c != "clean"])
+    dates = hosted_dates(root / "results" / "hosted_ledger.jsonl", cfg.hosted.model)
+    c = facts.get("claude")
+    if not c:
+        return (f"an OpenAI hosted model (API model ID `{cfg.hosted.model}`), queried {dates} on {styles} of the styles to "
+                "stay within its spend cap")
+    claude_styles = len([x for x in cfg.claude.conditions if x != "clean"])
+    each = (f"each run on {styles} of the styles to stay within its spend cap" if claude_styles == styles else
+            f"run on {styles} and {claude_styles} of the styles to stay within their spend caps")
+    claude_dates = hosted_dates(root / cfg.claude.ledger, c["model"], cfg.claude.ledger)
+    return (f"two hosted models, {each}: OpenAI's `{cfg.hosted.model}` (API model ID), queried {dates}, and Anthropic's "
+            f"`{c['model']}`, queried {claude_dates}")
 
 
 def build_context(root: Path, stamp: dict) -> dict:
@@ -126,9 +152,7 @@ def build_context(root: Path, stamp: dict) -> dict:
         "pooled_table": summary_section(summary, "Pooled over the injection styles"),
         "limitations": limitations,
         "headline": headline(metrics),
-        "hosted_model": cfg.hosted.model,
-        "hosted_styles": len([c for c in cfg.hosted.conditions if c != "clean"]),
-        "hosted_dates": hosted_dates(root / "results" / "hosted_ledger.jsonl", cfg.hosted.model),
+        "hosted_models": hosted_models(root, cfg, facts),
         **{k: facts.get(k) for k in ("n_user_tasks", "n_styles", "n_defenses", "n_models", "n_records")},
     }
 

@@ -33,7 +33,7 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
   - `run_facts.claude` from `results/claude_run.json` and the Claude_Ledger; the `judge` rows with task-clustered intervals; the sampling column for a record that sent no sampling settings.
   - `claude-haiku-5-5` takes categorical slot 4 of the palette in `aib/plots.py`.
   - Unit tests for each, including a missing summary, a missing ledger, and a judge file with refused and unparsed verdicts.
-- [ ] C11 Report and README (design.md, Reporting)
+- [x] C11 Report and README (design.md, Reporting)
   - The generated sampling paragraph and the comparability limitation, the hosted scope for both hosted runs, the judge table with its stamps, the README's hosted-model sentence, judge headline, and commands.
   - Unit tests on a fixture tree that holds a Claude store, `results/claude_run.json`, a Claude ledger, and a judge file, including the traceability check of the rendered Report and README.
 - [ ] C12 Full Claude benchmark and judge runs (Req C1.6, C1.7, C2, C3)

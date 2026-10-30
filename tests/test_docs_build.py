@@ -38,6 +38,30 @@ def test_readme_renders_every_required_section_and_traces(tmp_path):
     assert result.ok, result.untraceable
 
 
+def test_readme_names_both_hosted_models_and_the_judge_and_traces(tmp_path):
+    root = fixture_root(tmp_path, claude=True)
+    shutil.copy(REPO_ROOT / "docs" / "README.template.md", root / "docs" / "README.template.md")
+    text = render((root / "docs" / "README.template.md").read_text(), DB.build_context(root, STAMP))
+    assert ("and two hosted models, each run on 2 of the styles to stay within its spend cap: OpenAI's `gpt-6-luna` (API "
+            "model ID), queried on the dates recorded in `results/hosted_ledger.jsonl`, and Anthropic's `claude-haiku-5-5`, "
+            "queried on 2026-10-30 (UTC).") in text
+    assert "- **Second-opinion judge:** `claude-sonnet-5-5`, asked whether the agent's tool calls carried out" in text
+    assert "`qwen3-4b` 92 of 108 parsed verdicts, " in text and "The judge changes no rate" in text
+    assert "- Claude run (claude-haiku-5-5): 162 of 1440 planned cases completed; recorded spend $0.4000 over 2 runs" in text
+    assert "- **The two hosted models are not a controlled comparison.**" in text
+    assert "bash scripts/run_benchmark.sh claude-haiku-5-5" in text and "{{" not in text
+    (root / "README.md").write_text(text)
+    result = check_files([root / "README.md"], root / "results")[str(root / "README.md")]
+    assert result.ok, result.untraceable
+    cfg = CFG.load_all(root / "config")
+    cfg = cfg.model_copy(update={"claude": cfg.claude.model_copy(update={"conditions": ["clean", "direct"]})})
+    assert "run on 2 and 1 of the styles to stay within their spend caps" in DB.hosted_models(root, cfg, {"claude": {"model": "c"}})
+    partial = {"model": "m", "classified": 10, "judged": 2, "judge_models": ["j"], "cohens_kappa": None,
+               "agreement": {"point": 1.0, "lower": 1.0, "upper": 1.0, "successes": 2, "n": 2}}
+    assert "`m` 2 of 2 parsed verdicts, 1.000 [1.000, 1.000], Cohen's kappa undefined (both always gave the same answer) (2 of 10 " \
+           "classified cases judged)." in DB.headline({"judge": [partial]})
+
+
 def test_summary_helpers_fail_loudly():
     with pytest.raises(ValueError, match="no section"):
         DB.summary_section("# x\n", "Run facts")
