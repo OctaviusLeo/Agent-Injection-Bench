@@ -198,8 +198,8 @@ def test_run_cli_claude_uses_its_grid_ledger_and_summary(tmp_path, monkeypatch):
     monkeypatch.setattr(aib.classifier, "InjectionClassifier", lambda **k: KeywordClassifier())
     real = E.build_grid
     monkeypatch.setattr(E, "build_grid", lambda *a, **k: real(*a, **k)[:3])
-    assert E.run_cli("claude-haiku-5-5", pilot=False, workers=1, root=root) == 0
-    assert built["cap"] == 5.0 and built["purpose"] == "benchmark:claude-haiku-5-5"
+    assert E.run_cli("claude-haiku-5-5", pilot=False, workers=1, root=root, run_id="shared-run") == 0
+    assert built["cap"] == 5.0 and built["purpose"] == "benchmark:claude-haiku-5-5" and built["run_id"] == "shared-run"
     summary = json.loads((root / "results" / "claude_run.json").read_text())
     assert summary["completed_cases"] == 3 and summary["cap_scope"] == "run" and summary["run_id"] == built["run_id"]
     assert summary["spend_cap_usd"] == 5.0 and not (root / "results" / "hosted_run.json").exists()
@@ -219,8 +219,10 @@ def test_grid_for_uses_each_providers_conditions():
 
 
 def test_main_dispatches(monkeypatch):
-    monkeypatch.setattr(E, "run_cli", lambda model, pilot, workers: 7 if pilot and workers == 3 else 0)
+    monkeypatch.setattr(E, "run_cli", lambda model, pilot, workers, run_id=None: 7 if pilot and workers == 3 and run_id is None else 0)
     assert E.main(["run", "--model", "qwen3-4b", "--pilot", "--workers", "3"]) == 7
+    monkeypatch.setattr(E, "run_cli", lambda model, pilot, workers, run_id=None: 5 if run_id == "r-1" else 0)
+    assert E.main(["run", "--model", "claude-haiku-5-5", "--run-id", "r-1"]) == 5
 
 
 def test_model_version_strings_and_provider_cli(capsys):

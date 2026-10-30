@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import copy
+import inspect
 
 import anthropic
 import httpx2
+from anthropic.resources.messages import Messages
 
 REQUEST = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+CREATE_PARAMS = frozenset(inspect.signature(Messages.create).parameters) - {"self"}  # what the real SDK accepts
 
 
 def message(content, stop="end_turn", input_tokens=10, output_tokens=5, cache_write=0, cache_read=0, category=None,
@@ -31,7 +34,8 @@ def status_error(cls, status, text):
 
 
 class FakeClient:
-    """`client.messages.create(**params)` returns (or raises) scripted replies in order and repeats the last one."""
+    """`client.messages.create(**params)` returns (or raises) scripted replies in order and repeats the last one.
+    A parameter the installed SDK's `Messages.create` does not take raises TypeError, as the real client would."""
 
     def __init__(self, replies):
         self.replies = list(replies)
@@ -39,6 +43,9 @@ class FakeClient:
         self.messages = self
 
     def create(self, **params):
+        unknown = sorted(set(params) - CREATE_PARAMS)
+        if unknown:
+            raise TypeError(f"Messages.create() got unexpected keyword arguments {unknown}")
         self.requests.append(copy.deepcopy(params))
         reply = self.replies[min(len(self.requests) - 1, len(self.replies) - 1)]
         if isinstance(reply, Exception):

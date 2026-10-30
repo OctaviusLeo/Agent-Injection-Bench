@@ -250,5 +250,15 @@ def test_main_wires_store_checks_and_writes_a_blocker_on_failure(tmp_path, monke
     assert (root / "docs" / "BLOCKERS.md").exists() == (not outcome[0])
 
 
+def test_claude_relaunches_share_one_ledger_run_id():
+    from aib.config import load_all
+
+    cfg = load_all(REPO_ROOT / "config")
+    assert W.benchmark_command(cfg, "qwen3-4b") == ["bash", "scripts/run_benchmark.sh", "qwen3-4b"]
+    cmd = W.benchmark_command(cfg, "claude-haiku-5-5")
+    assert cmd[:4] == ["bash", "scripts/run_benchmark.sh", "claude-haiku-5-5", "--run-id"]
+    assert cmd[4].startswith("claude-haiku-5-5-watchdog-")  # built once per watchdog, so every relaunch reuses it
+
+
 def test_server_healthy_is_false_without_a_server():
     assert W.server_healthy("http://127.0.0.1:9", timeout=0.5) is False

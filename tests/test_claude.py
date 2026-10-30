@@ -40,6 +40,7 @@ def test_check_sends_three_turns_and_records_everything(tmp_path):
     code, res = C.run_check(root, client=client)
     assert code == 0 and res["passed"] and res["within_cap"]
     assert res["tool_request"]["tool_calls"] == [{"function": "get_current_day", "args": {}}]
+    assert res["tool_request"]["thinking_blocks"] == 1 and res["tool_free"]["thinking_blocks"] == 0
     assert res["tool_result_turn"]["content"] == "Today is 2024-05-15." and res["tool_result_turn"]["cached_tokens"] == 900
     third = client.requests[2]["messages"]
     assert third[1] == {"role": "assistant", "content": [THINKING, TOOL_USE]}  # the thinking block goes back unchanged
@@ -90,8 +91,8 @@ def test_ledger_prices_carry_the_long_context_tier_and_runs_get_their_own_id(tmp
 def test_main_prints_a_summary(monkeypatch, capsys):
     monkeypatch.setattr(C, "require_clean", lambda: None)
     rec = {"response_model": "claude-haiku-5-5", "finish_reason": "end_turn", "prompt_tokens": 1, "cached_tokens": 0,
-           "completion_tokens": 1, "cost_usd": 0.0, "content": "ok", "tool_calls": []}
+           "completion_tokens": 1, "cost_usd": 0.0, "content": "ok", "tool_calls": [], "thinking_blocks": 0}
     monkeypatch.setattr(C, "run_check", lambda: (0, {"model": "claude-haiku-5-5", "passed": True, "tool_free": rec}))
     assert C.main() == 0
     out = capsys.readouterr().out
-    assert '"passed": true' in out and "tool_free: model=claude-haiku-5-5 stop=end_turn" in out
+    assert '"passed": true' in out and "tool_free: model=claude-haiku-5-5 stop=end_turn thinking=0" in out

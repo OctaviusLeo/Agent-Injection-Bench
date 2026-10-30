@@ -196,7 +196,7 @@ def run_judge(store_path: Path, llm: ClaudeLLM, out_dir: Path, stamp: dict, limi
                "run": {"to_judge": len(todo), "judged": judged, "missing_traces": missing_traces, "failures": failures,
                        "stopped": stop_reason is not None, "stop_reason": stop_reason,
                        "stopped_at_cap": (stop_reason or "").startswith("SpendCapExceeded"),
-                       "run_id": llm.ledger.run_id, "run_spend_usd": llm.ledger.total_usd,
+                       "run_id": llm.ledger.run_id, "run_spend_usd": round(llm.ledger.total_usd, 9),
                        "run_cap_usd": llm.ledger.cap_usd}}
     path = Path(out_dir) / f"{model}_agreement.json"
     path.parent.mkdir(parents=True, exist_ok=True)

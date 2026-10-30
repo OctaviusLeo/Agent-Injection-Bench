@@ -34,6 +34,7 @@ from aib.llm import (
     LLMBadRequestError,
     LLMConnectionError,
     LLMError,
+    LLMResponseError,
     LLMServerError,
     LLMTimeoutError,
     MissingSecretError,
@@ -224,6 +225,8 @@ class ClaudeLLM(BasePipelineElement):
                                                extra_args) from exc
                 else:
                     raise LLMBadRequestError(f"HTTP {exc.status_code}: {text}", messages_in, extra_args) from exc
+            except anthropic.APIError as exc:  # for example a response the SDK could not validate
+                raise LLMResponseError(f"unusable response: {exc}", messages_in, extra_args) from exc
             if attempt >= self.max_attempts:
                 raise err
             time.sleep(min(self.backoff_s * 2 ** (attempt - 1), 30.0))
@@ -249,9 +252,10 @@ class ClaudeLLM(BasePipelineElement):
         start = time.monotonic()
         try:
             resp, record.attempts = self._send(params, messages, {**extra_args, "aib_calls": calls})
-        except (LLMError, AccountError) as exc:
+        except Exception as exc:  # any failure frees the reservation and leaves a `failed` ledger line
             record.latency_s = time.monotonic() - start
-            record.error = f"{getattr(exc, 'kind', 'account')}: {exc}"[:500]
+            kind = getattr(exc, "kind", None) or ("account" if isinstance(exc, AccountError) else type(exc).__name__)
+            record.error = f"{kind}: {exc}"[:500]
             self.ledger.release(reservation, record.error, self.purpose)
             if isinstance(exc, LLMError):
                 exc.extra_args = {**extra_args, "aib_calls": [*calls, record.to_dict()]}

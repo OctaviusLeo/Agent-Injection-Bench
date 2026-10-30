@@ -3,7 +3,8 @@
 `make_claude_ledger` opens the Claude ledger for one Claude run: a fresh run id, so only that run's requests count
 against `run_cap_usd`. `make_claude_llm` builds the Claude target's `ClaudeLLM` from config/models.yaml and
 config/claude.yaml. The check sends a tool-free request, a request with AgentDojo's `get_current_day` tool, and the
-tool's result back (so a thinking block is replayed), and writes results/claude_check.json.
+tool's result back (replaying Claude's blocks, thinking included when the model thought; each turn records how many
+thinking blocks it returned), and writes results/claude_check.json.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from agentdojo.default_suites.v1.tools.calendar_client import get_current_day
 from agentdojo.functions_runtime import FunctionsRuntime, make_function
 from agentdojo.types import ChatToolResultMessage, ChatUserMessage, get_text_content_as_str, text_content_block_from_string
 
-from aib.claude_llm import ClaudeLLM
+from aib.claude_llm import CLAUDE_CONTENT, ClaudeLLM
 from aib.config import AllConfig, ClaudeConfig, TieredPrices, load_all
 from aib.hosted import TOOL_FREE_PROMPT, TOOL_PROMPT
 from aib.ledger import Prices, SpendCapExceeded, SpendLedger
@@ -64,6 +65,7 @@ def _ask(llm: ClaudeLLM, messages: list, runtime: FunctionsRuntime) -> tuple[lis
     return list(out), {
         "content": get_text_content_as_str(reply["content"]) if reply["content"] else None,
         "tool_calls": [{"function": c.function, "args": dict(c.args)} for c in (reply["tool_calls"] or [])],
+        "thinking_blocks": sum(b["type"] in ("thinking", "redacted_thinking") for b in reply.get(CLAUDE_CONTENT, [])),
         **{k: rec[k] for k in ("response_model", "finish_reason", "stop_category", "prompt_tokens", "cached_tokens",
                                "cache_write_tokens", "completion_tokens", "cost_usd")},
     }
@@ -98,7 +100,7 @@ def run_check(root: Path = REPO_ROOT, client=None) -> tuple[int, dict]:
         result.update({"passed": False, "failed_condition": "Anthropic API key accepted", "cause": str(exc)})
     except (LLMError, SpendCapExceeded) as exc:
         result.update({"passed": False, "failed_condition": "Claude request", "cause": f"{type(exc).__name__}: {exc}"})
-    result["run_spend_usd"] = ledger.total_usd
+    result["run_spend_usd"] = round(ledger.total_usd, 9)  # drops float noise such as 0.00015749999999999998
     result["within_cap"] = ledger.total_usd <= c.run_cap_usd
     out_path = root / "results" / "claude_check.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -114,7 +116,7 @@ def main() -> int:
     for key in ("tool_free", "tool_request", "tool_result_turn"):
         if key in result:
             r = result[key]
-            print(f"{key}: model={r['response_model']} stop={r['finish_reason']} "
+            print(f"{key}: model={r['response_model']} stop={r['finish_reason']} thinking={r['thinking_blocks']} "
                   f"tokens={r['prompt_tokens']}/{r['cached_tokens']}/{r['completion_tokens']} cost=${r['cost_usd']:.6f} "
                   f"content={r['content']!r} tool_calls={r['tool_calls']}")
     return code

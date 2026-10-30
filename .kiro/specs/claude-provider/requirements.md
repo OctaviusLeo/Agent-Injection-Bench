@@ -31,6 +31,7 @@ Adds Claude, paid from the owner's Anthropic API credit, as a second Hosted_Mode
 3. THE System SHALL append every Claude request, refusal, and failure to the Claude_Ledger, tagged with the Claude_Run's id, and SHALL count only that run's entries against the Run_Cap.
 4. THE System SHALL price each Claude request as an upper bound: uncached prompt tokens at the 5-minute cache-write rate, cached tokens at the cache-hit rate, and Claude Haiku 5.5's higher rates for prompts over 100,000 tokens.
 5. THE System SHALL leave the OpenAI Spend_Cap, its ledger, and its total-over-the-project rule unchanged.
+6. WHEN the watchdog relaunches a Claude benchmark run after a crash, a stall, or a slowdown, THE System SHALL reuse the first launch's run id, so that every relaunch counts against the same Run_Cap.
 
 ## Requirement C3: Second-opinion judge
 

@@ -22,3 +22,8 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
 - [x] C7 Gate and live smoke test (Req C4)
   - `bash scripts/test_unit.sh` and `uvx ruff@0.17.3 check .` pass.
   - With the key forwarded: `python scripts/claude_check.py` passes within the Run_Cap, and `python -m aib.judge --store results/raw/qwen3-4b.jsonl --limit 2` writes two verdicts.
+- [ ] C8 Fixes from the independent acceptance review (Req C2.3, C2.6)
+  - The watchdog passes one `--run-id` to every relaunch of a Claude run, so the relaunches share one Run_Cap.
+  - Any failed Claude request, including a response the SDK cannot validate, frees its reservation and leaves a `failed` ledger line.
+  - The fake client rejects parameters the installed SDK's `Messages.create` does not take; the Claude check records the thinking blocks of each turn; recorded run spend is rounded to 9 decimals.
+  - Re-run the live check to see thinking replayed on the real API.

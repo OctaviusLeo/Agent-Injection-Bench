@@ -268,6 +268,17 @@ def record_blocker(root: Path, task: str, command: str, reason: str, attempts: l
         f.write("\n".join(lines) + "\n")
 
 
+def benchmark_command(cfg, model: str) -> list[str]:
+    """The job's command. A Claude run gets one ledger run id for every relaunch, so the relaunches share one Run_Cap
+    instead of starting a fresh one each (claude-provider Req C2.6)."""
+    command = ["bash", "scripts/run_benchmark.sh", model]
+    if cfg.models.models[model].provider == "anthropic":
+        from aib.claude import new_run_id
+
+        command += ["--run-id", new_run_id(f"{model}-watchdog")]
+    return command
+
+
 def main(argv: list[str] | None = None) -> int:
     from aib.config import load_all
     from aib.experiments import ResultsStore, grid_for
@@ -287,7 +298,7 @@ def main(argv: list[str] | None = None) -> int:
     ids = {s.case_id for s in specs}
     store_path = REPO_ROOT / "results" / "raw" / f"{args.model}.jsonl"
     name = args.name or f"run_{args.model}"
-    command = ["bash", "scripts/run_benchmark.sh", args.model]
+    command = benchmark_command(cfg, args.model)
     job = JobControl(REPO_ROOT, name, command)
     wlog = REPO_ROOT / "runs" / "logs" / f"watchdog-{name}.log"
     wlog.parent.mkdir(parents=True, exist_ok=True)

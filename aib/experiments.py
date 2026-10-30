@@ -251,7 +251,7 @@ def model_version(cfg: AllConfig, model: str) -> str:
     return f"{m.repo}@{m.revision}/{m.files[0].name}"
 
 
-def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT) -> int:
+def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT, run_id: str | None = None) -> int:
     from aib.classifier import InjectionClassifier
     from aib.hosted import make_hosted_llm, make_ledger
     from aib.llm import ChatLLM, Sampling
@@ -288,7 +288,7 @@ def run_cli(model: str, pilot: bool, workers: int | None, root: Path = REPO_ROOT
     if claude:
         from aib.claude import make_claude_ledger, make_claude_llm
 
-        ledger = make_claude_ledger(cfg.claude, model, root)
+        ledger = make_claude_ledger(cfg.claude, model, root, run_id=run_id)
         shared = make_claude_llm(cfg, model, ledger, purpose=f"benchmark:{model}")
     elif hosted:
         ledger = make_ledger(cfg.hosted, root)
@@ -358,8 +358,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--model", required=True)
     p.add_argument("--pilot", action="store_true")
     p.add_argument("--workers", type=int)
+    p.add_argument("--run-id", help="Claude only: the ledger run id; the watchdog passes one so relaunches share a Run_Cap")
     args = parser.parse_args(argv)
-    return run_cli(args.model, args.pilot, args.workers)
+    return run_cli(args.model, args.pilot, args.workers, run_id=args.run_id)
 
 
 if __name__ == "__main__":  # pragma: no cover

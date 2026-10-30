@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import anthropic
+import httpx2
 import pytest
 from agentdojo.default_suites.v1.tools.calendar_client import get_current_day
 from agentdojo.functions_runtime import FunctionCall, FunctionsRuntime, make_function
@@ -19,7 +20,15 @@ from agentdojo.types import (
 
 from aib import claude_llm as CL
 from aib.ledger import Prices, SpendCapExceeded, SpendLedger, request_cost
-from aib.llm import ContextOverflowError, LLMBadRequestError, LLMConnectionError, LLMServerError, LLMTimeoutError, MissingSecretError
+from aib.llm import (
+    ContextOverflowError,
+    LLMBadRequestError,
+    LLMConnectionError,
+    LLMResponseError,
+    LLMServerError,
+    LLMTimeoutError,
+    MissingSecretError,
+)
 from tests.fake_anthropic import REQUEST, FakeClient, message, status_error
 
 PRICES = Prices(cache_write=0.125, cached_input=0.01, output=0.50)
@@ -149,6 +158,23 @@ def test_context_overflow_and_other_bad_requests_are_not_retried(tmp_path):
     with pytest.raises(LLMBadRequestError):
         _llm(client, _ledger(tmp_path)).query("q", TOOLS, messages=[_user("hi")], extra_args={})
     assert len(client.requests) == 1
+
+
+def test_unusable_responses_and_unexpected_errors_free_the_reservation(tmp_path):
+    ledger = _ledger(tmp_path)
+    invalid = anthropic.APIResponseValidationError(response=httpx2.Response(200, request=REQUEST), body=None)
+    with pytest.raises(LLMResponseError, match="unusable response"):
+        _llm(FakeClient([invalid]), ledger).query("q", TOOLS, messages=[_user("hi")], extra_args={})
+    with pytest.raises(RuntimeError, match="boom"):
+        _llm(FakeClient([RuntimeError("boom")]), ledger).query("q", TOOLS, messages=[_user("hi")], extra_args={})
+    lines = [json.loads(line) for line in (tmp_path / "claude_ledger.jsonl").read_text().splitlines()]
+    assert [e["event"] for e in lines] == ["failed", "failed"] and lines[1]["error"].startswith("RuntimeError: boom")
+    assert ledger.total_usd == 0.0 and ledger._reserved == 0.0  # nothing left reserved against the cap
+
+
+def test_fake_client_rejects_parameters_the_sdk_does_not_take():
+    with pytest.raises(TypeError, match="temperatur"):
+        FakeClient([message([])]).create(model="m", max_tokens=1, messages=[], temperatur=0.5)
 
 
 @pytest.mark.parametrize("error", [
