@@ -204,6 +204,78 @@ def test_main_writes_stamped_metrics(tmp_path, monkeypatch, capsys):
     assert "9 cells" in capsys.readouterr().out
 
 
+CLAUDE_SAMPLING = {"temperature": None, "top_p": None, "seed": None, "effort": "medium", "max_tokens": 16000,
+                   "thinking": "adaptive (model default)", "note": "Claude models accept only their default sampling, so none is sent"}
+
+
+def _claude_store(directory: Path, model: str = "claude-haiku-5-5") -> list[dict]:
+    """A Claude store: its header carries the `claude` config, and its records the default-sampling record."""
+    records = [dict(r, sampling=CLAUDE_SAMPLING, response_models=[model]) for r in _grid_records(model)]
+    header = {"header": True, "stamp": {"commit": "c" * 40}, "config": {"claude": {"model": model}, "sampling": CLAUDE_SAMPLING}}
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / f"{model}.jsonl").write_text("\n".join(json.dumps(x) for x in [header, *records]) + "\n")
+    return records
+
+
+def test_claude_run_facts_sum_every_benchmark_run_from_the_ledger(tmp_path):
+    store = tmp_path / "raw"
+    _write_store(store, "m", _grid_records())
+    _claude_store(store)
+    assert M.compute_metrics(store, seed=1, resamples=50)["run_facts"]["claude"] == {  # no results/claude_run.json yet
+        "model": "claude-haiku-5-5", "summary": False, "effort": "medium", "max_tokens": 16000}
+    (tmp_path / "claude_run.json").write_text(json.dumps({"spend_usd": 0.5, "spend_cap_usd": 5.0, "stopped_at_cap": False,
+                                                           "completed_cases": 1440, "planned_cases": 1440}))
+    facts = M.claude_facts(M.load_stores(store), tmp_path / "claude_run.json", tmp_path / "claude_ledger.jsonl")
+    assert facts["spend_usd"] == "0.5000" and facts["runs"] is None  # no ledger: the summary's spend, run count unknown
+    rows = [{"purpose": "benchmark:claude-haiku-5-5", "run_id": "a", "cost_usd": 1.25, "event": "request"},
+            {"purpose": "benchmark:claude-haiku-5-5", "run_id": "b", "cost_usd": 0.5, "event": "request"},
+            {"purpose": "benchmark:claude-haiku-5-5", "run_id": "b", "cost_usd": 0.0, "event": "refused"},
+            {"purpose": "judge:m", "run_id": "c", "cost_usd": 9.0, "event": "request"},
+            {"purpose": "claude_check", "run_id": "d", "cost_usd": 1.0, "event": "request"}]
+    (tmp_path / "claude_ledger.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    assert M.compute_metrics(store, seed=1, resamples=50)["run_facts"]["claude"] == {
+        "model": "claude-haiku-5-5", "summary": True, "completed_cases": 1440, "planned_cases": 1440, "stopped_at_cap": False,
+        "runs": 2, "spend_usd": "1.7500", "run_cap_usd": "5.00", "effort": "medium", "max_tokens": 16000}
+    _write_store(store, "claude-haiku-5-5", [])  # a store without records is not the Claude run
+    assert M.compute_metrics(store, seed=1, resamples=50)["run_facts"]["claude"] is None
+
+
+def test_judge_rows_count_agreement_with_a_task_clustered_interval(tmp_path):
+    from aib.judge import agreement
+
+    store = tmp_path / "raw"
+    recs = [r for r in _grid_records("m") if r["status"] == "classified"]
+    _write_store(store, "m", recs)
+    verdicts = []
+    for i, r in enumerate(recs[:30]):
+        outcome = "refused" if i == 0 else "unparsed" if i == 1 else "parsed"
+        carried = None if outcome != "parsed" else (r["injection_success"] != (i % 5 == 0))  # every fifth disagrees
+        verdicts.append({"case_id": r["case_id"], "outcome": outcome, "carried_out": carried, "agentdojo": r["injection_success"],
+                         "agree": None if carried is None else carried == r["injection_success"], "judge_model": "j"})
+    stray = dict(verdicts[-1], case_id="m|none|direct|user_task_99|r0")  # a case the store does not hold is left out
+    judge = tmp_path / "judge"
+    judge.mkdir()
+    (judge / "m.jsonl").write_text("\n".join(json.dumps(v) for v in [*verdicts, stray]) + "\n")
+    (judge / "m_agreement.json").write_text(json.dumps({"stamp": {"command": "python -m aib.judge --store results/raw/m.jsonl",
+                                                                  "seed": 0, "commit": "f" * 40}}))
+    (judge / "absent.jsonl").write_text(json.dumps(stray) + "\n")  # no store for this model: no row
+    out = M.compute_metrics(store, seed=3, resamples=200)
+    rows = out["judge"]
+    assert [r["model"] for r in rows] == ["m"]
+    row = rows[0]
+    assert row["classified"] == len(recs) == 108  # coverage: 30 of the store's 108 classified cases were judged
+    assert row["judged"] == 30 and row["parsed"] == 28 and row["refused"] == 1 and row["unparsed"] == 1
+    assert row["agreement"]["successes"] == sum(v["agree"] is True for v in verdicts) == 23 and row["agreement"]["n"] == 28
+    assert row["agreement"]["method"] == "bootstrap-task-cluster-200"
+    assert row["agreement"]["lower"] <= row["agreement"]["point"] <= row["agreement"]["upper"]
+    assert row["cohens_kappa"] == pytest.approx(agreement(verdicts)["cohens_kappa"])
+    assert row["judge_models"] == ["j"] and row["stamp"]["commit"] == "f" * 40
+    sections = [out[k] for k in ("cells", "pooled", "defense_cost", "filter", "shared_pooled")]
+    assert out["diagnostics"]["rates"] == M.diagnostics(sections)["rates"] + 1  # the agreement rate is counted too
+    (judge / "m_agreement.json").unlink()
+    assert M.judge_rows(judge, M.load_stores(store), seed=3, resamples=200)[0]["stamp"] is None
+
+
 def test_load_store_skips_torn_lines(tmp_path):
     p = tmp_path / "x.jsonl"
     p.write_text(json.dumps({"header": True, "stamp": {}}) + "\n" + json.dumps(rec("user_task_0", "clean", ts=True)) + "\n{\"cut")

@@ -29,7 +29,7 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
   - Re-run the live check on the fixed code. At `effort: medium` no turn returned a thinking block, so thinking replay is covered by the unit tests here and will be exercised at scale by the full benchmark run.
 - [x] C9 Spec for the full runs and the reports
   - This list and design.md, Reporting. The requirements are unchanged (design.md, Reporting, says why).
-- [ ] C10 Metrics, Results_Table, and plot colour (design.md, Reporting)
+- [x] C10 Metrics, Results_Table, and plot colour (design.md, Reporting)
   - `run_facts.claude` from `results/claude_run.json` and the Claude_Ledger; the `judge` rows with task-clustered intervals; the sampling column for a record that sent no sampling settings.
   - `claude-haiku-5-5` takes categorical slot 4 of the palette in `aib/plots.py`.
   - Unit tests for each, including a missing summary, a missing ledger, and a judge file with refused and unparsed verdicts.

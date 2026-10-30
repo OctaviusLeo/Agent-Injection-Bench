@@ -49,6 +49,44 @@ def test_formatting_helpers():
     assert R.fmt_sampling({"temperature": 0.7, "top_p": 0.9, "seed": "per request", "top_k": None}) == "temperature=0.7, top_p=0.9"
 
 
+def test_claude_sampling_run_facts_and_judge_section():
+    claude = {"temperature": None, "top_p": None, "seed": None, "effort": "medium", "max_tokens": 16000,
+              "thinking": "adaptive (model default)", "note": "n"}
+    assert R.fmt_sampling(claude) == ("temperature=model default, top_p=model default, max_tokens=16000, effort=medium, "
+                                      "thinking=adaptive (model default)")
+    facts = {"claude": {"model": "c", "summary": False}}
+    assert R.run_fact_lines(facts)[-1] == "- Claude run (c): no Claude run summary (results/claude_run.json) was present."
+    facts = {"claude": {"model": "c", "summary": True, "completed_cases": 1440, "planned_cases": 1440, "stopped_at_cap": False,
+                        "runs": 2, "spend_usd": "1.7500", "run_cap_usd": "5.00", "effort": "medium", "max_tokens": 16000}}
+    lines = R.run_fact_lines(facts)
+    assert lines[1].endswith("; the temperature, top-p, and output cap apply to every model but c.")
+    assert lines[-1].startswith("- Claude run (c): 1440 of 1440 planned cases completed; recorded spend $1.7500 over 2 runs, "
+                                "each under the $5.00 per-run cap; the last run stopped at its cap: no.")
+    assert "adaptive thinking at effort medium; output cap 16000 tokens per call" in lines[-1]
+    facts["claude"].update(runs=1)
+    assert "recorded spend $1.7500 in 1 run, under the $5.00 per-run cap;" in R.run_fact_lines(facts)[-1]
+    facts["claude"].update(runs=None, stopped_at_cap=True)
+    assert "$1.7500 in its last run, under the $5.00 per-run cap; the last run stopped at its cap: yes." in R.run_fact_lines(facts)[-1]
+    assert R.run_fact_lines({})[1].endswith("base seed None.")
+    row = {"model": "m", "classified": 30, "judged": 20, "parsed": 18, "refused": 1, "unparsed": 1, "judge_yes_rule_yes": 2,
+           "judge_yes_rule_no": 1, "judge_no_rule_yes": 2, "judge_no_rule_no": 13, "cohens_kappa": 0.4, "judge_models": ["j"],
+           "agreement": {"point": 0.833, "lower": 0.7, "upper": 0.95, "method": "bootstrap-task-cluster-200"},
+           "stamp": {"command": "python -m aib.judge --store results/raw/m.jsonl", "seed": 0, "commit": "f" * 40}}
+    text = "\n".join(R.judge_lines([row, dict(row, model="n", cohens_kappa=None, stamp=None)]))
+    assert "## Second-opinion judge" in text and "Judge: j." in text
+    assert "| m | 30 | 20 | 18 | 1 | 1 | 2 | 1 | 2 | 13 | 0.833 [0.700, 0.950] | 0.400 |" in text
+    assert "| n | 30 | 20 | 18 | 1 | 1 | 2 | 1 | 2 | 13 | 0.833 [0.700, 0.950] | undefined (both always gave the same answer) |" in text
+    assert f"- Verdicts for m: command `python -m aib.judge --store results/raw/m.jsonl`, seed 0, commit `{'f' * 40}`." in text
+    assert "Verdicts for n" not in text and R.judge_lines([]) == []
+    assert not text.endswith("\n") and R.judge_lines([dict(row, stamp=None)])[-1].startswith("| m |")
+
+
+def test_claude_takes_the_fourth_palette_slot():
+    assert P.model_colors(["claude-haiku-5-5"]) == {"claude-haiku-5-5": P.SERIES[3]}
+    assert P._ordered_models({"models": {"claude-haiku-5-5": {}, "gpt-6-luna": {}, "qwen3-4b": {}}}) == [
+        "qwen3-4b", "gpt-6-luna", "claude-haiku-5-5"]
+
+
 def test_plots_are_written_and_non_empty(tmp_path):
     metrics = _fixture(tmp_path)
     a = P.plot_asr_by_defense(metrics, tmp_path / "plots" / "asr_by_defense.png")

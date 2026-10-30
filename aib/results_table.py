@@ -29,17 +29,26 @@ def fmt_rate(entry: dict | None) -> str:
 
 
 def fmt_sampling(sampling: dict) -> str:
-    keys = ("temperature", "top_p", "top_k", "min_p", "max_tokens", "max_completion_tokens", "reasoning_effort")
-    return ", ".join(f"{k}={sampling[k]}" for k in keys if k in sampling and sampling[k] is not None)
+    """A record's sampling settings; a temperature or top-p recorded as None was not sent, so the model's default applied."""
+    keys = ("temperature", "top_p", "top_k", "min_p", "max_tokens", "max_completion_tokens", "reasoning_effort", "effort",
+            "thinking")
+    return ", ".join(f"{k}={'model default' if sampling[k] is None else sampling[k]}" for k in keys
+                     if k in sampling and (sampling[k] is not None or k in ("temperature", "top_p")))
+
+
+def fmt_kappa(kappa: float | None) -> str:
+    return "undefined (both always gave the same answer)" if kappa is None else f"{kappa:.3f}"
 
 
 def run_fact_lines(f: dict) -> list[str]:
+    c = f.get("claude")
     lines = [
         f"- User tasks: {f.get('n_user_tasks')}; conditions: {f.get('n_conditions')} (clean plus {f.get('n_styles')} "
         f"injection styles); defenses: {f.get('n_defenses')}; injected goals: {f.get('n_goals')}; "
         f"models: {f.get('n_models')}; case records: {f.get('n_records')}.",
         f"- Repetitions per model, defense and condition: {f.get('repetitions')}; temperature {f.get('temperature')}; top-p {f.get('top_p')}; "
-        f"loop cap {f.get('max_iters')} model calls; output cap {f.get('max_tokens')} tokens per call; base seed {f.get('base_seed')}.",
+        f"loop cap {f.get('max_iters')} model calls; output cap {f.get('max_tokens')} tokens per call; base seed {f.get('base_seed')}"
+        + (f"; the temperature, top-p, and output cap apply to every model but {c['model']}." if c else "."),
     ]
     h = f.get("hosted")
     if h:
@@ -48,6 +57,16 @@ def run_fact_lines(f: dict) -> list[str]:
                      f"{'yes' if h['stopped_at_cap'] else 'no'}.")
     else:
         lines.append("- Hosted run: no hosted run summary (results/hosted_run.json) was present.")
+    if c and not c["summary"]:
+        lines.append(f"- Claude run ({c['model']}): no Claude run summary (results/claude_run.json) was present.")
+    elif c:
+        runs = (f"over {c['runs']} runs, each under" if (c["runs"] or 0) > 1 else
+                "in 1 run, under" if c["runs"] else "in its last run, under")
+        lines.append(f"- Claude run ({c['model']}): {c['completed_cases']} of {c['planned_cases']} planned cases completed; "
+                     f"recorded spend ${c['spend_usd']} {runs} the ${c['run_cap_usd']} per-run cap; the last run stopped at "
+                     f"its cap: {'yes' if c['stopped_at_cap'] else 'no'}. No sampling settings or seed were sent (the "
+                     f"model's default sampling); adaptive thinking at effort {c['effort']}; output cap {c['max_tokens']} "
+                     "tokens per call, thinking included.")
     return lines
 
 
@@ -134,7 +153,28 @@ def render_summary(metrics: dict, stamp: dict) -> str:
     for f in metrics.get("filter", []):
         lines.append(f"| {f['model']} | {f['condition']} | {f['outputs']} | {f['injected']} | {f['flagged']} | "
                      f"{fmt_rate(f.get('precision'))} | {fmt_rate(f.get('recall'))} | {fmt_rate(f['false_positive_rate'])} |")
+    lines += judge_lines(metrics.get("judge") or [])
     return "\n".join(lines) + "\n"
+
+
+def judge_lines(rows: list[dict]) -> list[str]:
+    """The second-opinion judge's agreement with AgentDojo's check, per judged model (claude-provider Req C3)."""
+    if not rows:
+        return []
+    judges = ", ".join(sorted({m for r in rows for m in r.get("judge_models", [])}))
+    lines = ["", "## Second-opinion judge", "",
+             f"Judge: {judges}. Agreement = verdicts that match AgentDojo's check / parsed verdicts, with the same 95% "
+             "interval as every rate; refused and unparsed verdicts are left out. The judge changes no rate above.", "",
+             "| Model | Classified cases | Verdicts | Parsed | Refused | Unparsed | Judge yes, rule yes | Judge yes, rule no | "
+             "Judge no, rule yes | Judge no, rule no | Agreement (95% CI) | Cohen's kappa |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    for r in rows:
+        lines.append(f"| {r['model']} | {r['classified']} | {r['judged']} | {r['parsed']} | {r['refused']} | {r['unparsed']} | "
+                     f"{r['judge_yes_rule_yes']} | {r['judge_yes_rule_no']} | {r['judge_no_rule_yes']} | "
+                     f"{r['judge_no_rule_no']} | {fmt_rate(r['agreement'])} | {fmt_kappa(r['cohens_kappa'])} |")
+    stamps = [f"- Verdicts for {r['model']}: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
+              f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp")]
+    return lines + ([""] + stamps if stamps else [])
 
 
 def main(argv: list[str] | None = None) -> int:

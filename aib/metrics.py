@@ -356,15 +356,42 @@ def compute_metrics(store_dir: str | Path, seed: int, resamples: int = 2000) -> 
                 p, rcl = filter_precision_recall(rs, cell_seed(seed, key + "|pr"), resamples)
                 entry.update({"precision": as_dict(p), "recall": as_dict(rcl)})
             filters.append(entry)
+    results = Path(store_dir).parent
+    judge = judge_rows(results / "judge", stores, seed, resamples)
     return {
         "settings": {"seed": seed, "resamples": resamples, "confidence": CONFIDENCE, "store": str(store_dir),
                      "interval_method": f"bootstrap-task-cluster-{resamples}",
                      "difference_method": f"paired-bootstrap-task-cluster-{resamples}"},
-        "run_facts": run_facts(stores, Path(store_dir).parent / "hosted_run.json"),
-        "diagnostics": diagnostics([cells, pooled, costs, filters, shared_pooled]),
+        "run_facts": run_facts(stores, results),
+        "diagnostics": diagnostics([cells, pooled, costs, filters, shared_pooled, judge]),
         "models": models, "cells": cells, "pooled": pooled, "defense_cost": costs, "filter": filters,
-        "shared_pooled": shared_pooled,
+        "shared_pooled": shared_pooled, "judge": judge,
     }
+
+
+def judge_rows(judge_dir: Path, stores: dict, seed: int, resamples: int = 2000) -> list[dict]:
+    """One row per results/judge/<model>.jsonl: the second-opinion verdicts against AgentDojo's check (claude-provider
+    design.md, Reporting). The agreement rate gets the task-clustered interval of every other rate, because a task's
+    Repetitions are judged one by one but are not independent; Cohen's kappa is a point value beside the counts."""
+    from aib.judge import agreement  # the judge's own counts and kappa, so this row and its agreement file agree
+
+    rows = []
+    for path in sorted(Path(judge_dir).glob("*.jsonl")):
+        records = {r["case_id"]: r for r in stores.get(path.stem, (None, []))[1]}
+        verdicts = [v for v in (json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+                    if v["case_id"] in records]
+        if not verdicts:
+            continue
+        parsed = [{"user_task_id": records[v["case_id"]]["user_task_id"], "agree": v["agree"]}
+                  for v in verdicts if v["outcome"] == "parsed"]
+        rate = cluster_bootstrap_rate(_by_task(parsed, lambda v: True, lambda v: v["agree"]),
+                                      cell_seed(seed, f"{path.stem}|judge|agreement"), resamples)
+        summary = path.with_name(f"{path.stem}_agreement.json")
+        classified = sum(r["status"] == "classified" and r.get("injection_success") is not None for r in records.values())
+        rows.append({"model": path.stem, "classified": classified, **agreement(verdicts), "agreement": as_dict(rate),
+                     "judge_models": sorted({v["judge_model"] for v in verdicts if v.get("judge_model")}),
+                     "stamp": json.loads(summary.read_text(encoding="utf-8")).get("stamp") if summary.exists() else None})
+    return rows
 
 
 def diagnostics(sections) -> dict:
@@ -380,8 +407,9 @@ def diagnostics(sections) -> dict:
             "max_dropped_resamples": max((e["dropped_resamples"] for e in diffs), default=0)}
 
 
-def run_facts(stores: dict, hosted_run_path: Path) -> dict:
-    """Counts and settings the Report states, taken from the stores (and the hosted run summary when present)."""
+def run_facts(stores: dict, results_dir: Path) -> dict:
+    """Counts and settings the Report states, taken from the stores (and the hosted and Claude run summaries when
+    present)."""
     records = [r for _, recs in stores.values() for r in recs]
     headers = [h for h, _ in stores.values() if h]
     experiment = next((h["config"].get("experiment") for h in headers if (h.get("config") or {}).get("experiment")), {}) or {}
@@ -401,7 +429,9 @@ def run_facts(stores: dict, hosted_run_path: Path) -> dict:
         "temperature": (experiment.get("sampling") or {}).get("temperature"),
         "top_p": (experiment.get("sampling") or {}).get("top_p"),
         "hosted": None,
+        "claude": claude_facts(stores, results_dir / "claude_run.json", results_dir / "claude_ledger.jsonl"),
     }
+    hosted_run_path = results_dir / "hosted_run.json"
     if hosted_run_path.exists():
         h = json.loads(hosted_run_path.read_text(encoding="utf-8"))
         spend, cap = h.get("spend_usd"), h.get("spend_cap_usd")
@@ -410,6 +440,28 @@ def run_facts(stores: dict, hosted_run_path: Path) -> dict:
                            "stopped_at_cap": h.get("stopped_at_cap"), "completed_cases": h.get("completed_cases"),
                            "planned_cases": h.get("planned_cases")}
     return facts
+
+
+def claude_facts(stores: dict, run_path: Path, ledger_path: Path) -> dict | None:
+    """The Claude benchmark (claude-provider design.md, Reporting): completion and the last run's cap stop from its
+    summary; the number of runs and their summed recorded spend from the Claude_Ledger, because the Run_Cap is per run
+    and the summary holds only the last run's spend. The Claude store is the one whose header carries a `claude` config."""
+    model = next((m for m, (h, recs) in stores.items() if recs and ((h or {}).get("config") or {}).get("claude")), None)
+    if model is None:
+        return None
+    sampling = stores[model][0]["config"].get("sampling") or {}
+    facts = {"model": model, "summary": run_path.exists(), "effort": sampling.get("effort"),
+             "max_tokens": sampling.get("max_tokens")}
+    if not facts["summary"]:
+        return facts
+    run = json.loads(run_path.read_text(encoding="utf-8"))
+    rows = [json.loads(line) for line in ledger_path.read_text(encoding="utf-8").splitlines() if line.strip()] \
+        if ledger_path.exists() else []
+    bench = [r for r in rows if r.get("purpose") == f"benchmark:{model}"]
+    spend = sum(float(r.get("cost_usd", 0.0)) for r in bench) if bench else run.get("spend_usd", 0.0)
+    return {**facts, "completed_cases": run.get("completed_cases"), "planned_cases": run.get("planned_cases"),
+            "stopped_at_cap": run.get("stopped_at_cap"), "runs": len({r.get("run_id") for r in bench}) or None,
+            "spend_usd": f"{spend:.4f}", "run_cap_usd": f"{run.get('spend_cap_usd', 0.0):.2f}"}
 
 
 def _condition_order(c: str) -> int:

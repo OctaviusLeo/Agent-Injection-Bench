@@ -21,12 +21,15 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.patches import Patch  # noqa: E402
 
 DEFENSE_ORDER = ("none", "delimit", "hierarchy", "filter")
-MODEL_ORDER = ("qwen3-4b", "llama3.1-8b", "qwen2.5-7b", "gpt-6-luna")
-# Categorical slots 1-3 of the validated reference palette (blue, orange, aqua). Color follows the model, never its
-# rank: the 4B model is slot 1, the 8B slot (llama3.1-8b or its fallback qwen2.5-7b, never both) slot 2, the hosted
-# model slot 3. Aqua is below 3:1 contrast on the light surface, so the legend and results/summary.md carry identity.
-SERIES = ("#2a78d6", "#eb6834", "#1baf7a")
-MODEL_COLORS = {"qwen3-4b": SERIES[0], "llama3.1-8b": SERIES[1], "qwen2.5-7b": SERIES[1], "gpt-6-luna": SERIES[2]}
+MODEL_ORDER = ("qwen3-4b", "llama3.1-8b", "qwen2.5-7b", "gpt-6-luna", "claude-haiku-5-5")
+# Categorical slots 1-4 of the validated reference palette (blue, orange, aqua, yellow). Color follows the model, never
+# its rank: the 4B model is slot 1, the 8B slot (llama3.1-8b or its fallback qwen2.5-7b, never both) slot 2, the OpenAI
+# model slot 3, the Claude target slot 4. The four pass the palette validator on the adjacent pairs of a grouped bar
+# (worst CVD Delta E 9.1, yellow-aqua). Aqua and yellow are below 3:1 contrast on the light surface, so the legend and
+# results/summary.md carry identity.
+SERIES = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100")
+MODEL_COLORS = {"qwen3-4b": SERIES[0], "llama3.1-8b": SERIES[1], "qwen2.5-7b": SERIES[1], "gpt-6-luna": SERIES[2],
+                "claude-haiku-5-5": SERIES[3]}
 OTHER = "#898781"
 SURFACE, INK, INK_2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 
