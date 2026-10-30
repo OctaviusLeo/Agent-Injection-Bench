@@ -3,24 +3,25 @@
   "stamp": {
     "command": "python scripts/claude_check.py",
     "seed": 0,
-    "commit": "9bed6d59ac120f5b885a1941d7f8ed5e544867c5"
+    "commit": "f000389882d6e9f6060b1e8456f92d97fe08fa5d"
   },
-  "run_id": "claude_check-20261029T234346Z-cd72d6",
+  "run_id": "claude_check-20261030T000503Z-4cf186",
   "run_cap_usd": 5.0,
   "effort": "medium",
   "max_tokens": 16000,
   "sampling": "model default (none sent)",
   "tool_free": {
-    "content": "A unit test checks that a small, isolated piece of code (such as a single function or class) behaves correctly for a given set of inputs.",
+    "content": "A unit test checks that a single, isolated piece of code, such as a function or class, behaves as expected for given inputs.",
     "tool_calls": [],
+    "thinking_blocks": 0,
     "response_model": "claude-haiku-5-5",
     "finish_reason": "end_turn",
     "stop_category": null,
     "prompt_tokens": 25,
     "cached_tokens": 0,
     "cache_write_tokens": 0,
-    "completion_tokens": 43,
-    "cost_usd": 2.4625e-05
+    "completion_tokens": 39,
+    "cost_usd": 2.2625e-05
   },
   "tool_request": {
     "content": null,
@@ -30,6 +31,7 @@
         "args": {}
       }
     ],
+    "thinking_blocks": 0,
     "response_model": "claude-haiku-5-5",
     "finish_reason": "tool_use",
     "stop_category": null,
@@ -42,6 +44,7 @@
   "tool_result_turn": {
     "content": "Today is May 15, 2024.",
     "tool_calls": [],
+    "thinking_blocks": 0,
     "response_model": "claude-haiku-5-5",
     "finish_reason": "end_turn",
     "stop_category": null,
@@ -52,6 +55,6 @@
     "cost_usd": 6.5125e-05
   },
   "passed": true,
-  "run_spend_usd": 0.00015749999999999998,
+  "run_spend_usd": 0.0001555,
   "within_cap": true
 }
