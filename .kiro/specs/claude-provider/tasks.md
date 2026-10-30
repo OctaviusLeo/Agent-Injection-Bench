@@ -40,5 +40,5 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
   - One capped chunk first: `bash scripts/run_benchmark.sh claude-haiku-5-5`, then the measured cost per case, a projection for the rest of the grid and for the judge, and the owner's approval before any further spend.
   - The benchmark runs on commit `a8c5ffa`, before C9-C11 are committed, because a store resumes only on the commit that started it; rerun it until 1,440 of 1,440 cases are in the store. Commit the Claude store, the Claude_Ledger, and `results/claude_run.json`.
   - With the approval: `python -m aib.judge --store results/raw/<model>.jsonl` for each approved store until every classified case is judged, each run under the Run_Cap and started after the last one ends. Commit the judge files.
-- [ ] C13 Regenerate and gate
+- [x] C13 Regenerate and gate
   - `bash scripts/build_results.sh` passes, traceability check included; `bash scripts/test_unit.sh` and `uvx ruff@0.17.3 check .` pass; commit the regenerated files.

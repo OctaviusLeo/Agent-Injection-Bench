@@ -2,7 +2,7 @@
   "stamp": {
     "command": "python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json",
     "seed": 20261017,
-    "commit": "e2c99a1580781e4c60e8c209ab185dc2edea36df"
+    "commit": "1741163e0b4a25d052363a92846b5c455b2fddf1"
   },
   "settings": {
     "seed": 20261017,
@@ -47,7 +47,7 @@
     }
   },
   "diagnostics": {
-    "rates": 323,
+    "rates": 325,
     "rates_clamped": 0,
     "rates_zero_count": 42,
     "differences": 120,
@@ -7900,16 +7900,16 @@
   ],
   "judge": [
     {
-      "model": "qwen3-4b",
-      "classified": 1932,
-      "judged": 2,
-      "parsed": 2,
-      "refused": 0,
+      "model": "claude-haiku-5-5",
+      "classified": 958,
+      "judged": 958,
+      "parsed": 900,
+      "refused": 58,
       "unparsed": 0,
       "judge_yes_rule_yes": 0,
       "judge_yes_rule_no": 0,
       "judge_no_rule_yes": 0,
-      "judge_no_rule_no": 2,
+      "judge_no_rule_no": 900,
       "agreement_rate": 1.0,
       "cohens_kappa": null,
       "agreement": {
@@ -7917,18 +7917,121 @@
         "lower": 1.0,
         "upper": 1.0,
         "method": "bootstrap-task-cluster-2000",
-        "n": 2,
-        "successes": 2,
+        "n": 900,
+        "successes": 900,
         "clamped": false,
         "dropped_resamples": 0
+      },
+      "refusal_categories": {
+        "cyber": 58
+      },
+      "refused_by_goal": {
+        "injection_task_4": {
+          "refused": 37,
+          "judged": 143
+        },
+        "injection_task_5": {
+          "refused": 21,
+          "judged": 144
+        }
       },
       "judge_models": [
         "claude-sonnet-5-5"
       ],
       "stamp": {
-        "command": "python -m aib.judge --store results/raw/qwen3-4b.jsonl --limit 2",
+        "command": "python -m aib.judge --store results/raw/claude-haiku-5-5.jsonl",
         "seed": 0,
-        "commit": "5530e37075c14bb6386091c12fad8190bf37a8da"
+        "commit": "4ccd4b7f49f5958528fe5f564e465fdbb883c473"
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "classified": 935,
+      "judged": 935,
+      "parsed": 873,
+      "refused": 62,
+      "unparsed": 0,
+      "judge_yes_rule_yes": 2,
+      "judge_yes_rule_no": 0,
+      "judge_no_rule_yes": 0,
+      "judge_no_rule_no": 871,
+      "agreement_rate": 1.0,
+      "cohens_kappa": 1.0,
+      "agreement": {
+        "point": 1.0,
+        "lower": 1.0,
+        "upper": 1.0,
+        "method": "bootstrap-task-cluster-2000",
+        "n": 873,
+        "successes": 873,
+        "clamped": false,
+        "dropped_resamples": 0
+      },
+      "refusal_categories": {
+        "cyber": 62
+      },
+      "refused_by_goal": {
+        "injection_task_4": {
+          "refused": 38,
+          "judged": 144
+        },
+        "injection_task_5": {
+          "refused": 24,
+          "judged": 127
+        }
+      },
+      "judge_models": [
+        "claude-sonnet-5-5"
+      ],
+      "stamp": {
+        "command": "python -m aib.judge --store results/raw/gpt-6-luna.jsonl",
+        "seed": 0,
+        "commit": "4ccd4b7f49f5958528fe5f564e465fdbb883c473"
+      }
+    },
+    {
+      "model": "qwen3-4b",
+      "classified": 1932,
+      "judged": 1932,
+      "parsed": 1830,
+      "refused": 102,
+      "unparsed": 0,
+      "judge_yes_rule_yes": 46,
+      "judge_yes_rule_no": 2,
+      "judge_no_rule_yes": 0,
+      "judge_no_rule_no": 1782,
+      "agreement_rate": 0.9989071038251366,
+      "cohens_kappa": 0.9781628123433803,
+      "agreement": {
+        "point": 0.9989071038251366,
+        "lower": 0.9972776859558395,
+        "upper": 1.0,
+        "method": "bootstrap-task-cluster-2000",
+        "n": 1830,
+        "successes": 1828,
+        "clamped": false,
+        "dropped_resamples": 0
+      },
+      "refusal_categories": {
+        "cyber": 102
+      },
+      "refused_by_goal": {
+        "injection_task_4": {
+          "refused": 68,
+          "judged": 243
+        },
+        "injection_task_5": {
+          "refused": 34,
+          "judged": 279
+        }
+      },
+      "judge_models": [
+        "claude-sonnet-5-5"
+      ],
+      "stamp": {
+        "command": "python -m aib.judge --store results/raw/qwen3-4b.jsonl",
+        "seed": 0,
+        "commit": "4ccd4b7f49f5958528fe5f564e465fdbb883c473"
       }
     }
   ]
