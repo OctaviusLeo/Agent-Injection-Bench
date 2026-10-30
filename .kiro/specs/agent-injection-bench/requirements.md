@@ -36,7 +36,7 @@ This document defines the requirements only. Benchmark-or-reuse mechanics, the e
 - **Attack_Success_Rate**: The fraction of attempted injected cases in a Cell for which the Injection_Success_Check returned true.
 - **Task_Success_Rate**: The fraction of cases in a Cell for which the Task_Success_Check returned true.
 - **Defense_Cost**: The drop in Task_Success_Rate of a Defense_Condition relative to the No_Defense condition for the same Model and Injection_Style.
-- **Confidence_Interval**: A 95 percent interval for a reported rate, computed by the Wilson method for a proportion or by bootstrap resampling.
+- **Confidence_Interval**: A 95 percent interval for a reported rate, computed by the Wilson method for a proportion or by bootstrap resampling, or, for a rate whose eligible cases all failed or all succeeded, the exact one-sided bound of Requirement 6.9 or 6.10.
 - **Repetition**: One of the repeated executions of a Cell used to account for output variation.
 - **Measured_Value**: A number produced by a script in this repository, recorded with its generating command, seed, and full 40-character commit hash.
 - **Results_Store**: The generated set of raw per-case result records from which every reported metric is computed.
@@ -161,6 +161,9 @@ This document defines the requirements only. Benchmark-or-reuse mechanics, the e
 6. WHEN the metrics layer runs twice on an identical Results_Store with the same seed, THE System SHALL produce metric values and interval bounds that are equal to within an absolute tolerance of 1e-6.
 7. THE metrics layer SHALL be invocable from a single non-interactive command and SHALL record each reported metric with its generating command, seed, and full 40-character commit hash.
 8. IF a Cell has zero classified cases, THEN THE metrics layer SHALL report that Cell's rate as not computed with its cause and SHALL continue computing the remaining Cells.
+9. IF every eligible case of a rate failed, THEN THE metrics layer SHALL report, in place of the bootstrap interval, the interval from 0 to the exact one-sided 95 percent Clopper-Pearson upper bound `1 - 0.05^(1/n)`, where n is the number of eligible cases, treated as independent, and SHALL record that method; and WHERE such an interval appears in the Results_Table, the Report, or the README, THE System SHALL mark it with a mark used for nothing else and SHALL explain that mark in the same document.
+10. IF every eligible case of a rate succeeded, THEN THE metrics layer SHALL report, in place of the bootstrap interval, the interval from the exact one-sided 95 percent Clopper-Pearson lower bound `0.05^(1/n)` to 1, where n is the number of eligible cases, treated as independent, and SHALL record that method; and WHERE such an interval appears in the Results_Table, the Report, or the README, THE System SHALL mark it with a mark used for nothing else, distinct from the mark of criterion 9, and SHALL explain that mark in the same document.
+    - **Owner decision, 2026-10-30:** criteria 9 and 10 were added together. Criterion 9 writes down the rule the metrics layer has applied since commit `e8e3515`; criterion 10 is its mirror for rates whose every eligible case succeeded, which until then printed a zero-width bootstrap interval.
 
 ### Requirement 7: Report and plots (M5)
 

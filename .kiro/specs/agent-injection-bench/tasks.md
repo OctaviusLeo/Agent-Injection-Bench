@@ -69,7 +69,10 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
     { "id": 36, "tasks": ["6.4"] },
     { "id": 37, "tasks": ["6.5"] },
     { "id": 38, "tasks": ["6.6"] },
-    { "id": 39, "tasks": ["6.7"] }
+    { "id": 39, "tasks": ["6.7"] },
+    { "id": 40, "tasks": ["7.1"] },
+    { "id": 41, "tasks": ["7.2"] },
+    { "id": 42, "tasks": ["7.3"] }
   ]
 }
 ```
@@ -407,6 +410,26 @@ Every wave holds one task, so tasks run strictly in this order: no two tasks edi
   - `THIRD_PARTY.md` lists every package, model, and image named in `docs/ENVIRONMENT.md`;
   - design.md states the responsible-disclosure rule.
   - Then commit and push. The gate passes when all of this succeeds. The agent fixes failures and re-runs within the retry cap; it does not pause for input.
+
+## After M5 — Exact bounds for all-success rates
+
+A rate whose every eligible case succeeded printed a zero-width bootstrap interval, `1.000 [1.000, 1.000]`, as zero-success rates did before commit `e8e3515` gave them an exact upper bound. These tasks give it the mirror bound (Req 6.9, 6.10).
+
+- [x] 7.1 Spec for the exact bounds
+  - Requirement 6.9 (the zero-success rule the metrics layer has applied since commit `e8e3515`), 6.10 (its all-success mirror), and the glossary's Confidence_Interval; design.md's "Statistics" section, interfaces, generated outputs, testing strategy, and known limitations; this list.
+  - _Requirements: 6.9, 6.10_
+
+- [ ] 7.2 Implement the all-success lower bound
+  - `aib/metrics.py`: `all_success_lower(n)`; `cluster_bootstrap_rate` reports an all-success rate as [0.05^(1/n), 1] with method `exact-lower-95-all-success`; the diagnostics count such rates as `rates_all_success`.
+  - `aib/results_table.py`: the ‡ mark and its own note beside the † note; the diagnostics line counts the all-success rates.
+  - `aib/report.py`, `docs/report_template.md`, and `docs/README.template.md`: the statistics paragraph, the limitation, and the README's interval sentence and pooled-table caption name both marks.
+  - Unit tests: an all-success rate over 117 cases is [0.05^(1/117), 1] with that method, the mirror of the zero-success bound; one failure keeps the bootstrap; ‡ and its note appear in the Results_Table; the diagnostics count the all-success rates; the Report and the README name ‡.
+  - _Requirements: 6.2, 6.9, 6.10_
+
+- [ ] 7.3 Regenerate and gate
+  - Commit, then run `bash scripts/build_results.sh`; the traceability check passes, and no all-success rate in `results/summary.md`, `docs/REPORT.md`, or `README.md` shows a zero-width interval.
+  - `bash scripts/test_unit.sh` and `uvx ruff@0.17.3 check .` pass. Commit the regenerated files.
+  - _Requirements: 6.10, 7.2, 9.3, 9.4_
 
 ## Notes
 

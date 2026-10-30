@@ -309,11 +309,12 @@ Computed in code while planning this design. The character counts were measured 
 | Hosted spend | 19.2M–74.9M prompt tokens, 0.19M–0.95M output tokens; cached share 0.8 | $0.73–$2.95 (cap $3.00; $0.62–$9.84 if the cached share ranges from 0.85 to 0) |
 | Disk | model files 7.4 GB, classifier 0.75 GB, environment with CPU torch 1.5–3 GB, image 0–3.5 GB if not cached, results and traces 0.2–1 GB | 9.9–15.7 GB |
 
-### Statistics (Req 6.1–6.8)
+### Statistics (Req 6.1–6.10)
 
 - **Unit of resampling.** The 3 Repetitions of a task are not independent samples, so every rate's 95% Confidence_Interval is a **task-clustered percentile bootstrap**: resample the 40 tasks with replacement 2,000 times, keep all of each drawn task's cases, compute the pooled rate (successes ÷ eligible cases), and take the 2.5th and 97.5th percentiles. The method string recorded with each interval is `bootstrap-task-cluster-2000`.
 - **Seeds.** The generator is `numpy.random.default_rng` seeded from the base seed and a stable hash of the Cell key, so results do not depend on Cell order (Req 6.6).
 - **Wilson interval.** `wilson_interval` (z = 1.959964) is implemented and tested (Property 7). It is used where cases are independent: the CI smoke subset and per-output filter statistics in the calibration check.
+- **Rates with no successes or no failures (Req 6.9, 6.10).** A percentile bootstrap of a rate whose eligible cases all failed, or all succeeded, is a single point, because every resample gives 0, or every resample gives 1, so it would print a zero-width interval. Such a rate reports instead the exact one-sided 95% Clopper-Pearson bound over its n eligible cases, treated as independent: with no successes the interval is [0, 1 − 0.05^(1/n)] (`zero_count_upper`, method `exact-upper-95-zero-count`, marked †), and with every case a success it is [0.05^(1/n), 1] (`all_success_lower`, method `exact-lower-95-all-success`, marked ‡). The Results_Table gives each mark its own note, and the Report's statistics paragraph and the README's interval sentence name both. Treating the cases as independent ignores the task clustering, so these bounds can be narrower than a task-clustered bound would be; the Report's limitations say so. Paired differences keep the bootstrap, so a difference between two rates that are both zero-success, or both all-success, can still show a zero-width interval. The diagnostics in `metrics.json` count both kinds of rate.
 - **Rates.**
   - Attack_Success_Rate = carried-out ÷ classified (excluding `unclassified_not_exposed` and `errored`, Req 6.3).
   - Task_Success_Rate = task successes ÷ non-errored cases.
@@ -547,6 +548,8 @@ def server_props(base_url: str) -> dict: ...          # /props: per-slot n_ctx, 
 class RateCI:
     point: float; lower: float; upper: float; method: str; n: int   # n = denominator
 def wilson_interval(successes: int, n: int, z: float = 1.959964) -> RateCI: ...
+def zero_count_upper(n: int, confidence: float = 0.95) -> float: ...   # 1 - 0.05^(1/n), Req 6.9
+def all_success_lower(n: int, confidence: float = 0.95) -> float: ...  # 0.05^(1/n), Req 6.10
 def cluster_bootstrap_rate(by_task: dict[str, tuple[int, int]], seed: int, resamples: int = 2000) -> RateCI: ...
 def paired_bootstrap_difference(a: dict[str, tuple[int, int]], b: dict[str, tuple[int, int]],
                                 seed: int, resamples: int = 2000) -> RateCI: ...
@@ -580,7 +583,7 @@ def compute_metrics(store_dir: str, seed: int, resamples: int) -> dict: ...
 ### Generated outputs
 
 - `results/metrics.json`: every Cell's rates with intervals or `not computed` with cause, Defense_Cost and ASR reduction with paired intervals, pooled rows, filter precision and recall, counts by status, and the stamp.
-- `results/summary.md` (the Results_Table): one row per Cell with ASR (CI), TSR (CI), Defense_Cost vs `none` (CI), exposure rate, unclassified and errored counts, Repetitions, temperature and sampling, plus filter precision and recall per Model, and its stamp. It changes only by regeneration (Req 6, 7.2).
+- `results/summary.md` (the Results_Table): one row per Cell with ASR (CI), TSR (CI), Defense_Cost vs `none` (CI), exposure rate, unclassified and errored counts, Repetitions, temperature and sampling, plus filter precision and recall per Model, and its stamp; an exact bound for a rate with no successes or no failures carries its mark, and a note explains each mark (Req 6.9, 6.10). It changes only by regeneration (Req 6, 7.2).
 - `results/plots/asr_by_defense.png` and `results/plots/defense_cost.png` (Req 7.3).
 - `docs/REPORT.md` and `README.md`, generated.
 
@@ -721,7 +724,7 @@ Unit tests cover concrete examples and edge cases; Hypothesis covers the eleven 
 - message conversion, malformed arguments, retries, missing-secret fail-fast, and the ledger's refusal, all against a fake HTTP server (Req 0.13, 5.2);
 - each defense's pipeline shape and texts, and the filter's records with the keyword classifier (Req 4.1–4.5);
 - per-case error capture and resume (Req 5.6); grid determinism and metadata (Req 5.7);
-- Wilson and bootstrap on known inputs; Defense_Cost; filter precision and recall on a labeled fixture; empty-Cell `not computed` (Req 6).
+- Wilson and bootstrap on known inputs; the exact bounds of a zero-success and an all-success rate; Defense_Cost; filter precision and recall on a labeled fixture; empty-Cell `not computed` (Req 6).
 
 **Markers:** `gpu`, `docker`, `network`, and `classifier` mark tests that need those resources; `scripts/test_unit.sh` excludes them, so CI needs no GPU, Docker, secrets, or downloads (Req 8.3).
 
@@ -771,5 +774,6 @@ Each milestone ends in an automated gate before the next begins; failures that s
 - **Exposure-conditioned ASR.** Cases where the Agent never read the injected data are excluded from the ASR denominator; exposure rates are reported beside every ASR.
 - **The tool-permission-limit defense is not implemented.**
 - **Fixed filter threshold** of 0.5; precision and recall at other thresholds are not explored.
+- **Zero-success and all-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound and a rate with only successes the exact one-sided 95% lower bound; both treat cases as independent and so can be narrower than a task-clustered bound, and a paired difference between two rates that are both zero-success, or both all-success, still shows a zero-width bootstrap interval.
 - **An AgentDojo executor crash counts as errored.** `ToolsExecutor` in `agentdojo` 0.1.35 runs `literal_eval` on every string argument (`is_string_list`) and catches only `ValueError` and `SyntaxError`, so an argument such as `{{'a'}}` raises `TypeError: unhashable type` and ends the case. The runner records such a case as `errored` with that cause, as for any per-case failure; it is reported in the errored counts, and the executor was not patched mid-run so every record of a model comes from one commit.
 - **Suite deviation.** The suite includes AgentDojo's v1.1.2 task fixes, which `get_suite("v1.2.2")` in 0.1.35 omits, so numbers are not directly comparable with results produced through that function.
