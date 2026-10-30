@@ -392,6 +392,7 @@ def judge_rows(judge_dir: Path, stores: dict, seed: int, resamples: int = 2000) 
         goals = sorted({v["injection_task_id"] for v in refused})
         rows.append({"model": path.stem, "classified": classified, **agreement(verdicts), "agreement": as_dict(rate),
                      "refusal_categories": dict(sorted(Counter(str(v.get("stop_category")) for v in refused).items())),
+                     "verdict_commits": dict(Counter(v["stamp"]["commit"] for v in verdicts if v.get("stamp")).most_common()),
                      "refused_by_goal": {g: {"refused": sum(v["injection_task_id"] == g for v in refused),
                                              "judged": sum(v["injection_task_id"] == g for v in verdicts)} for g in goals},
                      "judge_models": sorted({v["judge_model"] for v in verdicts if v.get("judge_model")}),

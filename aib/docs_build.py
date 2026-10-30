@@ -96,11 +96,12 @@ def headline(metrics: dict) -> str:
         judges = ", ".join(f"`{m}`" for m in sorted({m for j in judged for m in j.get("judge_models", [])}))
         out.append(f"- **Second-opinion judge:** {judges}, asked whether the agent's tool calls carried out the injected goal, "
                    "agreed with AgentDojo's rule-based check on " + ", ".join(
-                       f"`{j['model']}` {j['agreement']['successes']} of {j['agreement']['n']} parsed verdicts, "
-                       f"{fmt_rate(j['agreement'])}, Cohen's kappa {fmt_kappa(j['cohens_kappa'])}"
+                       f"`{j['model']}` {j['agreement']['successes']} of {j['agreement']['n']} parsed verdicts"
+                       + (f" ({j['refused']} refused)" if j["refused"] else "")
+                       + f", {fmt_rate(j['agreement'])}, Cohen's kappa {fmt_kappa(j['cohens_kappa'], j['parsed'])}"
                        + (f" ({j['judged']} of {j['classified']} classified cases judged)" if j["judged"] < j["classified"] else "")
                        for j in judged)
-                   + ". The judge changes no rate; its confusion counts are in the Report.")
+                   + ". The judge changes no rate; its confusion counts, refusals, and stamps are in the Report.")
     return "\n".join(out) if out else "- No pooled comparison had enough classified cases for a finding."
 
 
@@ -122,11 +123,11 @@ def hosted_models(root: Path, cfg, facts: dict) -> str:
         return (f"an OpenAI hosted model (API model ID `{cfg.hosted.model}`), queried {dates} on {styles} of the styles to "
                 "stay within its spend cap")
     claude_styles = len([x for x in cfg.claude.conditions if x != "clean"])
-    each = (f"each run on {styles} of the styles to stay within its spend cap" if claude_styles == styles else
-            f"run on {styles} and {claude_styles} of the styles to stay within their spend caps")
     claude_dates = hosted_dates(root / cfg.claude.ledger, c["model"], cfg.claude.ledger)
-    return (f"two hosted models, {each}: OpenAI's `{cfg.hosted.model}` (API model ID), queried {dates}, and Anthropic's "
-            f"`{c['model']}`, queried {claude_dates}")
+    grid = ("on the same styles, so that the two hosted models share a grid" if claude_styles == styles else
+            f"on {claude_styles} of the styles")
+    return (f"two hosted models: OpenAI's `{cfg.hosted.model}` (API model ID), queried {dates} on {styles} of the styles "
+            f"to stay within its spend cap, and Anthropic's `{c['model']}`, queried {claude_dates} {grid}")
 
 
 def build_context(root: Path, stamp: dict) -> dict:

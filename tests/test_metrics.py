@@ -252,7 +252,8 @@ def test_judge_rows_count_agreement_with_a_task_clustered_interval(tmp_path):
         carried = None if outcome != "parsed" else (r["injection_success"] != (i % 5 == 0))  # every fifth disagrees
         verdicts.append({"case_id": r["case_id"], "outcome": outcome, "carried_out": carried, "agentdojo": r["injection_success"],
                          "agree": None if carried is None else carried == r["injection_success"], "judge_model": "j",
-                         "injection_task_id": f"injection_task_{i % 3}", "stop_category": "cyber" if i == 0 else None})
+                         "injection_task_id": f"injection_task_{i % 3}", "stop_category": "cyber" if i == 0 else None,
+                         "stamp": {"commit": ("b" if i < 3 else "c") * 40}})
     stray = dict(verdicts[-1], case_id="m|none|direct|user_task_99|r0")  # a case the store does not hold is left out
     judge = tmp_path / "judge"
     judge.mkdir()
@@ -273,6 +274,7 @@ def test_judge_rows_count_agreement_with_a_task_clustered_interval(tmp_path):
     assert row["judge_models"] == ["j"] and row["stamp"]["commit"] == "f" * 40
     assert row["refusal_categories"] == {"cyber": 1}  # the refusal's stop category, and its goal's refused of judged
     assert row["refused_by_goal"] == {"injection_task_0": {"refused": 1, "judged": 10}}
+    assert row["verdict_commits"] == {"c" * 40: 27, "b" * 40: 3}  # most verdicts first
     sections = [out[k] for k in ("cells", "pooled", "defense_cost", "filter", "shared_pooled")]
     assert out["diagnostics"]["rates"] == M.diagnostics(sections)["rates"] + 1  # the agreement rate is counted too
     (judge / "m_agreement.json").unlink()

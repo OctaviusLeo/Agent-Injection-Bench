@@ -36,8 +36,10 @@ def fmt_sampling(sampling: dict) -> str:
                      if k in sampling and (sampling[k] is not None or k in ("temperature", "top_p")))
 
 
-def fmt_kappa(kappa: float | None) -> str:
-    return "undefined (both always gave the same answer)" if kappa is None else f"{kappa:.3f}"
+def fmt_kappa(kappa: float | None, parsed: int | None = None) -> str:
+    if kappa is None:
+        return "not computed (no parsed verdicts)" if parsed == 0 else "undefined (both always gave the same answer)"
+    return f"{kappa:.3f}"
 
 
 def run_fact_lines(f: dict) -> list[str]:
@@ -52,11 +54,11 @@ def run_fact_lines(f: dict) -> list[str]:
     ]
     h = f.get("hosted")
     if h:
-        lines.append(f"- Hosted run: {h['completed_cases']} of {h['planned_cases']} planned cases completed; spend "
+        lines.append(f"- OpenAI hosted run: {h['completed_cases']} of {h['planned_cases']} planned cases completed; spend "
                      f"${h['spend_usd']} of the ${h['spend_cap_usd']} spend cap; stopped at the cap: "
                      f"{'yes' if h['stopped_at_cap'] else 'no'}.")
     else:
-        lines.append("- Hosted run: no hosted run summary (results/hosted_run.json) was present.")
+        lines.append("- OpenAI hosted run: no hosted run summary (results/hosted_run.json) was present.")
     if c and not c["summary"]:
         lines.append(f"- Claude run ({c['model']}): no Claude run summary (results/claude_run.json) was present.")
     elif c:
@@ -171,11 +173,17 @@ def judge_lines(rows: list[dict]) -> list[str]:
     for r in rows:
         lines.append(f"| {r['model']} | {r['classified']} | {r['judged']} | {r['parsed']} | {r['refused']} | {r['unparsed']} | "
                      f"{r['judge_yes_rule_yes']} | {r['judge_yes_rule_no']} | {r['judge_no_rule_yes']} | "
-                     f"{r['judge_no_rule_no']} | {fmt_rate(r['agreement'])} | {fmt_kappa(r['cohens_kappa'])} |")
+                     f"{r['judge_no_rule_no']} | {fmt_rate(r['agreement'])} | {fmt_kappa(r['cohens_kappa'], r['parsed'])} |")
     notes = [f"- Refused verdicts for {r['model']}: {refusal_text(r)}." for r in rows if r.get("refused")]
     notes += [f"- Verdicts for {r['model']}: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
-              f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp")]
+              f"`{r['stamp']['commit']}`{commits_text(r)}." for r in rows if r.get("stamp")]
     return lines + ([""] + notes if notes else [])
+
+
+def commits_text(row: dict) -> str:
+    """When a model's verdict lines come from more than one commit, how many came from each (every line keeps its stamp)."""
+    commits = row.get("verdict_commits") or {}
+    return ("; verdict lines by commit: " + ", ".join(f"`{c}` {n}" for c, n in commits.items())) if len(commits) > 1 else ""
 
 
 def refusal_text(row: dict, tick: str = "") -> str:

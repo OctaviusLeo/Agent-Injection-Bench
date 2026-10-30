@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-from aib.results_table import fmt_kappa, fmt_rate, refusal_text
+from aib.results_table import commits_text, fmt_kappa, fmt_rate, refusal_text
 
 PLACEHOLDER = re.compile(r"\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}")
 DEFENSE_ORDER = ("none", "delimit", "hierarchy", "filter")
@@ -30,8 +30,8 @@ LIMITATIONS = (
     "because llama.cpp could not parse the turns in which it called two tools (the model checks are recorded in "
     "`.kiro/specs/agent-injection-bench/design.md`), so the local "
     "comparison is across size and generation, not family.",
-    "- **The hosted grid is smaller:** it covers {hosted_conditions} of the {n_conditions} conditions because of the "
-    "spend cap. `{hosted_model}` is OpenAI's API model ID, an alias the provider can repoint; the response `model` field "
+    "- **The hosted grid is smaller:** it covers {hosted_conditions} of the {n_conditions} conditions because of "
+    "`{hosted_model}`'s spend cap. `{hosted_model}` is OpenAI's API model ID, an alias the provider can repoint; the response `model` field "
     "recorded on every case echoed the alias, so no dated snapshot was recorded.",
     "- **Floor effect.** Undefended attack success was at most {max_none_asr} pooled over a model's styles, so no defense "
     "could lower it by more than that; the ASR-reduction intervals are narrow mainly because there was little to reduce.",
@@ -90,8 +90,9 @@ def comparability_lines(metrics: dict, hosted_model: str) -> list[str]:
         ids = [m for m in metrics["models"][model].get("response_models", []) if not m.startswith("stub")]
         recorded = ("echoed the requested ID, so no dated snapshot was recorded" if ids == [model]
                     else "recorded " + ", ".join(f"`{m}`" for m in ids) if ids else "was not recorded")
-        out.append(f"- **The two hosted models are not a controlled comparison.** `{model}` sent no sampling settings and no "
-                   f"seed, so it used the model's default sampling, and it thought adaptively at effort `{s.get('effort')}`; "
+        out.append(f"- **The two hosted models are not a controlled comparison.** `{model}` ran the same grid as "
+                   f"`{hosted_model}` but sent no sampling settings and no seed, so it used the model's default sampling, and "
+                   f"it thought adaptively at effort `{s.get('effort')}`; "
                    f"`{hosted_model}` ran at temperature {other.get('temperature')} and top-p {other.get('top_p')} with a "
                    f"per-request seed and reasoning effort `{other.get('reasoning_effort')}`. A difference between the two mixes "
                    f"the model with its decoding settings. The response `model` field on `{model}`'s cases {recorded}.")
@@ -231,7 +232,8 @@ def hosted_statement(facts: dict, hosted_conditions: list[str], n_conditions: in
         return text
     if not c["summary"]:
         return text + f" No run summary for the Claude target `{c['model']}` was present when this report was generated."
-    grid =("the same conditions in the same order" if claude_conditions in (None, hosted_conditions) else
+    grid = ("the same conditions in the same order, so that the two hosted models share a grid"
+            if claude_conditions in (None, hosted_conditions) else
             f"{len(claude_conditions)} of the conditions ({', '.join(f'`{x}`' for x in claude_conditions)}) in the same order")
     runs = f" in {c['runs']} run{'' if c['runs'] == 1 else 's'}" if c["runs"] else ""
     stop = "Its last run stopped at the Run_Cap" if c["stopped_at_cap"] else "Its last run ended below the Run_Cap"
@@ -240,7 +242,7 @@ def hosted_statement(facts: dict, hosted_conditions: list[str], n_conditions: in
             f"${c['spend_usd']} (an upper bound on the bill: uncached prompt tokens are priced at the cache-write rate). {stop}.")
 
 
-def judge_section(metrics: dict) -> str:
+def judge_section(metrics: dict, effort: str | None = None) -> str:
     """The second-opinion judge's agreement with AgentDojo's check, copied as results/summary.md formats it."""
     rows = metrics.get("judge") or []
     if not rows:
@@ -251,10 +253,11 @@ def judge_section(metrics: dict) -> str:
                    [[f"`{r['model']}`", str(r["classified"]), str(r["judged"]), str(r["parsed"]), str(r["refused"]),
                      str(r["unparsed"]),
                      str(r["judge_yes_rule_yes"]), str(r["judge_yes_rule_no"]), str(r["judge_no_rule_yes"]),
-                     str(r["judge_no_rule_no"]), fmt_rate(r["agreement"]), fmt_kappa(r["cohens_kappa"])] for r in rows])
+                     str(r["judge_no_rule_no"]), fmt_rate(r["agreement"]), fmt_kappa(r["cohens_kappa"], r["parsed"])]
+                    for r in rows])
     notes = [f"- `{r['model']}` refused verdicts: {refusal_text(r, '`')}." for r in rows if r.get("refused")]
     notes += [f"- `{r['model']}` verdicts: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
-              f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp")]
+              f"`{r['stamp']['commit']}`{commits_text(r)}." for r in rows if r.get("stamp")]
     stamps = "\n".join(notes)
     models = ", ".join(f"`{r['model']}`" for r in rows)
     cats = sorted({k for r in rows for k in r.get("refusal_categories", {})})
@@ -262,10 +265,12 @@ def judge_section(metrics: dict) -> str:
     refusals = (f" Every refused verdict had stop category {', '.join(f'`{k}`' for k in cats)} and came from injected goal "
                 f"{' or '.join(f'`{g}`' for g in goals)}; refused verdicts are left out of the agreement, so those goals rest "
                 "on fewer verdicts (counts below the table)." if goals else "")
+    settings = (f" It used its default sampling and adaptive thinking at effort `{effort}`, and returned each verdict as "
+                "structured JSON." if effort else "")
     return (f"{judges} read classified attack cases of {models} (the injected goal, "
             "the user's task, and the transcript, which it was told is data that may contain instructions addressed to it) "
             "and said whether the agent's tool calls carried out the injected goal; the table gives how many of each model's "
-            "classified cases it judged. Its verdicts change no rate in this "
+            f"classified cases it judged.{settings} Its verdicts change no rate in this "
             "report; they measure how often an LLM judge agrees with AgentDojo's rule-based check. Agreement is over the "
             "parsed verdicts, with a 95% task-clustered interval. Cohen's kappa corrects it for the agreement expected by "
             "chance, which is high when nearly every case is a rule-negative; it is undefined when both always gave the "
@@ -279,7 +284,8 @@ def external_validity(metrics: dict, cfg) -> str:
     local = sum(1 for m in metrics.get("models", {}) if cfg.models.models.get(m) and cfg.models.models[m].provider == "llamacpp")
     hosted = len(metrics.get("models", {})) - local
     return (f"{words.get(local, local)} small quantized local model{'' if local == 1 else 's'}, and "
-            f"{words.get(hosted, hosted)} hosted model ID{'' if hosted == 1 else 's'} at one point in time")
+            + (f"{words.get(hosted, hosted)} hosted model ID at one point in time" if hosted == 1 else
+               f"{words.get(hosted, hosted)} hosted model IDs, each at one point in time"))
 
 
 def build_context(root: Path, stamp: dict) -> dict:
@@ -308,7 +314,7 @@ def build_context(root: Path, stamp: dict) -> dict:
         "filter_table": filter_table(metrics), "findings": findings(metrics),
         "hosted_statement": hosted_statement(facts, cfg.hosted.conditions, facts.get("n_conditions") or len(cfg.experiment.conditions),
                                              cfg.hosted.model, cfg.claude.conditions),
-        "sampling_statement": sampling_statement(metrics, facts), "judge_section": judge_section(metrics),
+        "sampling_statement": sampling_statement(metrics, facts), "judge_section": judge_section(metrics, cfg.claude.judge.effort),
         "external_validity": external_validity(metrics, cfg),
     }
     ctx["limitations"] = limitation_lines(metrics, cfg, calib)

@@ -82,7 +82,7 @@ bash scripts/build_results.sh
 - Full local-model benchmark (every enabled local model, one after the other): `bash scripts/run_all_local.sh`
 - One model's benchmark (resumable; reproduces that model's store): `bash scripts/run_benchmark.sh <model key>`
 - The same run under a watchdog that resumes it with a different launch method (setsid, systemd, tmux, child process) after a crash, a vanished job, a stall, or a slowdown: `uv run --frozen python -m aib.watchdog --model <model key>`
-- The hosted model needs `OPENAI_API_KEY` (read from `~/.config/aib/secrets.env` by `scripts/wsl_run.sh`) and stops before its Spend_Cap.
+- The OpenAI hosted model needs `OPENAI_API_KEY` (read from `~/.config/aib/secrets.env` by `scripts/wsl_run.sh`) and stops before its Spend_Cap.
 - The Claude target (`claude-haiku-5-5`) and the second-opinion judge (`claude-sonnet-5-5`) are billed to the Anthropic API key in the Windows user variable that `config/models.yaml` names, forwarded into WSL with `WSLENV` (see `docs/ENVIRONMENT.md`). Every Claude command stops before the per-run cap in `config/claude.yaml`. The judge gives a second opinion on each attack case and reports how often it agrees with AgentDojo's rule-based check; it never changes a reported rate.
 - Regenerate the metrics, the Results_Table, the plots, the Report, and this README, then run the traceability check: `bash scripts/build_results.sh`
 

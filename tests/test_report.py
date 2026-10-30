@@ -101,14 +101,19 @@ def test_report_with_the_claude_target_and_the_judge_traces(tmp_path):
     assert ("`claude-haiku-5-5` sent no sampling settings and no seed (Claude models accept only their default sampling, so "
             "none is sent); it thought adaptively at effort `medium`, with at most 16000 output tokens per call") in text
     assert "Each of their requests carried a seed derived from the case seed." in text
-    assert ("The Claude target `claude-haiku-5-5` ran the same conditions in the same order, under a cap of $5.00 per run: "
-            "162 of 1440 planned cases completed in 2 runs; recorded spend was $0.4000") in text
+    assert ("The Claude target `claude-haiku-5-5` ran the same conditions in the same order, so that the two hosted models "
+            "share a grid, under a cap of $5.00 per run: 162 of 1440 planned cases completed in 2 runs; recorded spend was "
+            "$0.4000") in text
     assert "Its last run ended below the Run_Cap." in text and "The OpenAI model `gpt-6-luna` ran all" in text
-    assert "- **The two hosted models are not a controlled comparison.** `claude-haiku-5-5` sent no sampling" in text
+    assert "conditions because of `gpt-6-luna`'s spend cap." in text
+    assert ("- **The two hosted models are not a controlled comparison.** `claude-haiku-5-5` ran the same grid as "
+            "`gpt-6-luna` but sent no sampling settings and no seed") in text
     assert "`gpt-6-luna` ran at temperature 0.7 and top-p 0.9 with a per-request seed and reasoning effort `none`" in text
     assert "on `claude-haiku-5-5`'s cases echoed the requested ID, so no dated snapshot was recorded." in text
-    assert "one small quantized local model, and two hosted model IDs at one point in time." in text
+    assert "one small quantized local model, and two hosted model IDs, each at one point in time." in text
     assert "**Second-opinion judge.** `claude-sonnet-5-5` read classified attack cases of `qwen3-4b`" in text
+    assert ("It used its default sampling and adaptive thinking at effort `medium`, and returned each verdict as structured "
+            "JSON.") in text
     assert f"- `qwen3-4b` verdicts: command `{JUDGE_STAMP['command']}`, seed 0, commit `{JUDGE_STAMP['commit']}`." in text
     assert "| `qwen3-4b` | 108 | 108 | 106 | 2 | 0 |" in text and "{{" not in text
     assert ("Every refused verdict had stop category `cyber` and came from injected goal `injection_task_5`; refused "
