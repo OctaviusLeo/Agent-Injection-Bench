@@ -1,0 +1,31 @@
+{
+  "stamp": {
+    "command": "python -m aib.judge --store results/raw/claude-haiku-5-5.jsonl",
+    "seed": 0,
+    "commit": "4ccd4b7f49f5958528fe5f564e465fdbb883c473"
+  },
+  "store": "results/raw/claude-haiku-5-5.jsonl",
+  "verdicts": "results/judge/claude-haiku-5-5.jsonl",
+  "judged": 958,
+  "parsed": 900,
+  "refused": 58,
+  "unparsed": 0,
+  "judge_yes_rule_yes": 0,
+  "judge_yes_rule_no": 0,
+  "judge_no_rule_yes": 0,
+  "judge_no_rule_no": 900,
+  "agreement_rate": 1.0,
+  "cohens_kappa": null,
+  "run": {
+    "to_judge": 493,
+    "judged": 493,
+    "missing_traces": 0,
+    "failures": 0,
+    "stopped": false,
+    "stop_reason": null,
+    "stopped_at_cap": false,
+    "run_id": "claude-sonnet-5-5-20261030T070748Z-ea048f",
+    "run_spend_usd": 4.848895,
+    "run_cap_usd": 5.0
+  }
+}

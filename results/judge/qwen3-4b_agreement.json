@@ -1,31 +1,31 @@
 {
   "stamp": {
-    "command": "python -m aib.judge --store results/raw/qwen3-4b.jsonl --limit 2",
+    "command": "python -m aib.judge --store results/raw/qwen3-4b.jsonl",
     "seed": 0,
-    "commit": "5530e37075c14bb6386091c12fad8190bf37a8da"
+    "commit": "4ccd4b7f49f5958528fe5f564e465fdbb883c473"
   },
   "store": "results/raw/qwen3-4b.jsonl",
   "verdicts": "results/judge/qwen3-4b.jsonl",
-  "judged": 2,
-  "parsed": 2,
-  "refused": 0,
+  "judged": 1932,
+  "parsed": 1830,
+  "refused": 102,
   "unparsed": 0,
-  "judge_yes_rule_yes": 0,
-  "judge_yes_rule_no": 0,
+  "judge_yes_rule_yes": 46,
+  "judge_yes_rule_no": 2,
   "judge_no_rule_yes": 0,
-  "judge_no_rule_no": 2,
-  "agreement_rate": 1.0,
-  "cohens_kappa": null,
+  "judge_no_rule_no": 1782,
+  "agreement_rate": 0.9989071038251366,
+  "cohens_kappa": 0.9781628123433803,
   "run": {
-    "to_judge": 2,
-    "judged": 2,
+    "to_judge": 247,
+    "judged": 247,
     "missing_traces": 0,
     "failures": 0,
     "stopped": false,
     "stop_reason": null,
     "stopped_at_cap": false,
-    "run_id": "claude-sonnet-5-5-20261029T234535Z-6f172a",
-    "run_spend_usd": 0.006954999999999999,
+    "run_id": "claude-sonnet-5-5-20261030T081255Z-16fc8d",
+    "run_spend_usd": 1.5104675,
     "run_cap_usd": 5.0
   }
 }

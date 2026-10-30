@@ -1,0 +1,31 @@
+{
+  "stamp": {
+    "command": "python -m aib.judge --store results/raw/gpt-6-luna.jsonl",
+    "seed": 0,
+    "commit": "4ccd4b7f49f5958528fe5f564e465fdbb883c473"
+  },
+  "store": "results/raw/gpt-6-luna.jsonl",
+  "verdicts": "results/judge/gpt-6-luna.jsonl",
+  "judged": 935,
+  "parsed": 873,
+  "refused": 62,
+  "unparsed": 0,
+  "judge_yes_rule_yes": 2,
+  "judge_yes_rule_no": 0,
+  "judge_no_rule_yes": 0,
+  "judge_no_rule_no": 871,
+  "agreement_rate": 1.0,
+  "cohens_kappa": 1.0,
+  "run": {
+    "to_judge": 87,
+    "judged": 87,
+    "missing_traces": 0,
+    "failures": 0,
+    "stopped": false,
+    "stop_reason": null,
+    "stopped_at_cap": false,
+    "run_id": "claude-sonnet-5-5-20261030T084521Z-732f86",
+    "run_spend_usd": 0.6222425,
+    "run_cap_usd": 5.0
+  }
+}
