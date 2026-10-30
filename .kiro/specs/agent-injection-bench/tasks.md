@@ -426,7 +426,7 @@ A rate whose every eligible case succeeded printed a zero-width bootstrap interv
   - Unit tests: an all-success rate over 117 cases is [0.05^(1/117), 1] with that method, the mirror of the zero-success bound; one failure keeps the bootstrap; ‡ and its note appear in the Results_Table; the diagnostics count the all-success rates; the Report and the README name ‡.
   - _Requirements: 6.2, 6.9, 6.10_
 
-- [ ] 7.3 Regenerate and gate
+- [x] 7.3 Regenerate and gate
   - Commit, then run `bash scripts/build_results.sh`; the traceability check passes, and no all-success rate in `results/summary.md`, `docs/REPORT.md`, or `README.md` shows a zero-width interval.
   - `bash scripts/test_unit.sh` and `uvx ruff@0.17.3 check .` pass. Commit the regenerated files.
   - _Requirements: 6.10, 7.2, 9.3, 9.4_

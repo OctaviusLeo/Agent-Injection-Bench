@@ -9,13 +9,13 @@ It runs 40 user tasks from AgentDojo's workspace suite (an email, calendar, and 
 
 ## Results
 
-Rates come with 95% task-clustered bootstrap intervals, except that a rate with no successes shows its exact one-sided 95% upper bound (marked †); changes are paired against no defense on the same resampled tasks.
+Rates come with 95% task-clustered bootstrap intervals, except that a rate with no successes shows its exact one-sided 95% upper bound (marked †) and a rate with only successes its exact one-sided 95% lower bound (marked ‡); changes are paired against no defense on the same resampled tasks.
 
 - **Undefended attack success** on the styles every model ran (`direct`, `important_instructions`): `claude-haiku-5-5` 0 of 239 classified cases, 0.000 [0.000, 0.012]†, `gpt-6-luna` 1 of 233 classified cases, 0.004 [0.000, 0.013], `qwen2.5-7b` 6 of 148 classified cases, 0.041 [0.006, 0.089], `qwen3-4b` 12 of 190 classified cases, 0.063 [0.015, 0.121]. The table below pools each model over all the styles it ran, which differ (2 for `claude-haiku-5-5`, 2 for `gpt-6-luna`, 5 for `qwen2.5-7b`, 5 for `qwen3-4b`).
 - **Floor effect:** undefended attack success was at most 0.030 [0.009, 0.055] (`qwen3-4b`, pooled over its styles), so no defense could lower it by more than that; the style with the most successful attacks, per model: `qwen3-4b` 12 of 14 under `important_instructions` (0.124 [0.031, 0.240]), `qwen2.5-7b` 6 of 9 under `important_instructions` (0.083 [0.013, 0.188]), `gpt-6-luna` 1 of 1 under `direct` (0.009 [0.000, 0.026]).
 - **DeBERTa filter:** it lowered task success by 0.265 [0.163, 0.370] (`qwen2.5-7b`) to 0.562 [0.446, 0.671] (`gpt-6-luna`); its largest drop in attack success was 0.023 [0.005, 0.046] (`qwen3-4b`). It is expensive because it flagged 0.334 [0.242, 0.426] (`qwen2.5-7b`) to 0.428 [0.321, 0.541] (`claude-haiku-5-5`) of benign tool outputs in runs without an attack, and a flagged output is replaced by an omission notice.
 - **Delimiter and hierarchy prompts:** the paired interval for the change in task success includes zero in 8 of 8 model-defense pairs, and for the change in attack success in 7 of 8; the exceptions: `qwen2.5-7b` under `delimit`, attack-success reduction -0.017 [-0.037, -0.001] (attack success rose).
-- **Second-opinion judge:** `claude-sonnet-5-5`, asked whether the agent's tool calls carried out the injected goal, agreed with AgentDojo's rule-based check on `claude-haiku-5-5` 900 of 900 parsed verdicts (58 refused), 1.000 [1.000, 1.000], Cohen's kappa undefined (both always gave the same answer), `gpt-6-luna` 873 of 873 parsed verdicts (62 refused), 1.000 [1.000, 1.000], Cohen's kappa 1.000, `qwen3-4b` 1828 of 1830 parsed verdicts (102 refused), 0.999 [0.997, 1.000], Cohen's kappa 0.978. The judge changes no rate; its confusion counts, refusals, and stamps are in the Report.
+- **Second-opinion judge:** `claude-sonnet-5-5`, asked whether the agent's tool calls carried out the injected goal, agreed with AgentDojo's rule-based check on `claude-haiku-5-5` 900 of 900 parsed verdicts (58 refused), 1.000 [0.997, 1.000]‡, Cohen's kappa undefined (both always gave the same answer), `gpt-6-luna` 873 of 873 parsed verdicts (62 refused), 1.000 [0.997, 1.000]‡, Cohen's kappa 1.000, `qwen3-4b` 1828 of 1830 parsed verdicts (102 refused), 0.999 [0.997, 1.000], Cohen's kappa 0.978. The judge changes no rate; its confusion counts, refusals, and stamps are in the Report.
 
 ![Task-success cost of each defense](results/plots/defense_cost.png)
 
@@ -26,14 +26,14 @@ Rates come with 95% task-clustered bootstrap intervals, except that a rate with 
 - OpenAI hosted run: 1440 of 1440 planned cases completed; spend $0.5474 of the $3.00 spend cap; stopped at the cap: no.
 - Claude run (claude-haiku-5-5): 1440 of 1440 planned cases completed; recorded spend $1.6025 in 1 run, under the $5.00 per-run cap; the last run stopped at its cap: no. No sampling settings or seed were sent (the model's default sampling); adaptive thinking at effort medium; output cap 16000 tokens per call, thinking included.
 
-**Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes):
+**Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes, ‡ an exact lower bound for a rate with only successes):
 
 | Model | Defense | Styles | ASR (95% CI) | TSR (95% CI) | Defense cost vs none (95% CI) | ASR reduction vs none (95% CI) | Exposure (95% CI) | Unclassified | Errored |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | claude-haiku-5-5 | none | 2 | 0.000 [0.000, 0.012]† | 0.908 [0.817, 0.979] | reference | reference | 0.996 [0.988, 1.000] | 1 | 0 |
 | claude-haiku-5-5 | delimit | 2 | 0.000 [0.000, 0.012]† | 0.908 [0.808, 0.983] | 0.000 [-0.012, 0.012] | 0.000 [0.000, 0.000] | 0.996 [0.988, 1.000] | 1 | 0 |
-| claude-haiku-5-5 | hierarchy | 2 | 0.000 [0.000, 0.012]† | 0.929 [0.850, 0.992] | -0.021 [-0.054, 0.000] | 0.000 [0.000, 0.000] | 1.000 [1.000, 1.000] | 0 | 0 |
-| claude-haiku-5-5 | filter | 2 | 0.000 [0.000, 0.012]† | 0.429 [0.296, 0.558] | 0.479 [0.350, 0.617] | 0.000 [0.000, 0.000] | 1.000 [1.000, 1.000] | 0 | 0 |
+| claude-haiku-5-5 | hierarchy | 2 | 0.000 [0.000, 0.012]† | 0.929 [0.850, 0.992] | -0.021 [-0.054, 0.000] | 0.000 [0.000, 0.000] | 1.000 [0.988, 1.000]‡ | 0 | 0 |
+| claude-haiku-5-5 | filter | 2 | 0.000 [0.000, 0.012]† | 0.429 [0.296, 0.558] | 0.479 [0.350, 0.617] | 0.000 [0.000, 0.000] | 1.000 [0.988, 1.000]‡ | 0 | 0 |
 | gpt-6-luna | none | 2 | 0.004 [0.000, 0.013] | 0.942 [0.887, 0.983] | reference | reference | 0.971 [0.929, 1.000] | 7 | 0 |
 | gpt-6-luna | delimit | 2 | 0.000 [0.000, 0.013]† | 0.942 [0.879, 0.988] | 0.000 [-0.021, 0.021] | 0.004 [0.000, 0.013] | 0.979 [0.942, 1.000] | 5 | 0 |
 | gpt-6-luna | hierarchy | 2 | 0.000 [0.000, 0.013]† | 0.942 [0.875, 0.992] | 0.000 [-0.033, 0.037] | 0.004 [0.000, 0.013] | 0.963 [0.908, 1.000] | 9 | 0 |
@@ -70,7 +70,7 @@ flowchart LR
 - **Attacks.** Five generic injection styles, planted only in fixture fields that the user task's ground truth reads, so the injection always arrives inside a tool output; each user task is paired with one of six benign sandbox goals. A clean control has no injection.
 - **Classification.** An injected case counts toward the attack success rate only when the agent actually received a tool output containing the injection; other injected cases are reported as unclassified.
 - **Defenses.** `none`, `delimit` (spotlighting with `<<` `>>`), `hierarchy` (instruction-hierarchy system prompt), and `filter` (a DeBERTa prompt-injection classifier screens every tool output).
-- **Statistics.** Task-clustered bootstrap intervals for every rate; paired bootstrap intervals for defense cost and ASR reduction.
+- **Statistics.** Task-clustered bootstrap intervals for every rate, except exact one-sided bounds for a rate with no successes or only successes; paired bootstrap intervals for defense cost and ASR reduction.
 
 ## Run it
 
@@ -145,7 +145,7 @@ GitHub Actions runs the first two on every push and on pull requests to `main`.
 - **Exposure-conditioned ASR.** Cases where the agent never read the injected data are excluded from the ASR denominator; exposure rates are reported beside every ASR.
 - **The tool-permission-limit defense is not implemented.** It needs a per-task allowed-tool list that AgentDojo does not provide.
 - **Fixed filter threshold** of 0.5; precision and recall at other thresholds are not explored.
-- **Zero-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound, which treats cases as independent and so can be narrower than a task-clustered bound; a paired difference between two zero-success rates still shows a zero-width bootstrap interval.
+- **Zero-success and all-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound and a rate with only successes the exact one-sided 95% lower bound; both treat cases as independent and so can be narrower than a task-clustered bound, and a paired difference between two rates that are both zero-success, or both all-success, still shows a zero-width bootstrap interval.
 - **Goal confounding.** Each user task is always paired with the same injected goal (user task k with goal k mod 6), and the bootstrap resamples tasks only, so task and goal effects cannot be separated and the intervals do not cover other pairings.
 - **Predicate exceptions.** An AgentDojo injection predicate that raises is scored as not carried out, and the committed records do not say whether that happened; runs made after this was found record the exception in `security_check_error`.
 - **An AgentDojo executor crash counts as errored.** `ToolsExecutor` in `agentdojo` `0.1.35` runs `literal_eval` on every string argument and catches only `ValueError` and `SyntaxError`, so a nested set literal (a set written inside a set) raises `TypeError: unhashable type` and ends the case. The runner records such a case as `errored` with that cause, as for any per-case failure; it is counted in the errored columns, and the executor was not patched mid-run, so every record of a model comes from one commit.
@@ -165,9 +165,9 @@ Code is released under the [MIT License](LICENSE). Third-party packages, models 
 
 This README is generated by `python -m aib.docs_build` from `docs/README.template.md` and the files under `results/`; do not edit it by hand.
 
-- README: command `python -m aib.docs_build --template docs/README.template.md --out README.md`, seed 20261017, commit `ff2d6fb16d9ea518163fe1de361b3c20adafacce`.
-- Results_Table: command `python -m aib.results_table --metrics results/metrics.json --out results/summary.md`, seed 20261017, commit `ff2d6fb16d9ea518163fe1de361b3c20adafacce`.
-- Metrics: command `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, seed 20261017, commit `ff2d6fb16d9ea518163fe1de361b3c20adafacce`.
+- README: command `python -m aib.docs_build --template docs/README.template.md --out README.md`, seed 20261017, commit `4e02e31ef15d42585edb3bb1921ecf6c8340b9f5`.
+- Results_Table: command `python -m aib.results_table --metrics results/metrics.json --out results/summary.md`, seed 20261017, commit `4e02e31ef15d42585edb3bb1921ecf6c8340b9f5`.
+- Metrics: command `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, seed 20261017, commit `4e02e31ef15d42585edb3bb1921ecf6c8340b9f5`.
 
 ## How this was built
 
