@@ -39,8 +39,11 @@ def _claude_results(root, local):
                "ts": "2026-10-30T05:20:00+00:00"} for run, cost in (("a", 0.25), ("b", 0.15))]
     (results / "claude_ledger.jsonl").write_text("\n".join(json.dumps(r) for r in ledger) + "\n")
     verdicts = [{"case_id": r["case_id"], "outcome": "parsed", "carried_out": r["injection_success"] != (i % 7 == 0),
-                 "agentdojo": r["injection_success"], "agree": i % 7 != 0, "judge_model": "claude-sonnet-5-5"}
+                 "agentdojo": r["injection_success"], "agree": i % 7 != 0, "judge_model": "claude-sonnet-5-5",
+                 "injection_task_id": f"injection_task_{i % 6}", "stop_category": None}
                 for i, r in enumerate(x for x in local if x["status"] == "classified")]
+    for i in (5, 11):  # two refusals, both on injection_task_5
+        verdicts[i].update(outcome="refused", carried_out=None, agree=None, stop_category="cyber")
     (results / "judge").mkdir()
     (results / "judge" / "qwen3-4b.jsonl").write_text("\n".join(json.dumps(v) for v in verdicts) + "\n")
     (results / "judge" / "qwen3-4b_agreement.json").write_text(json.dumps({"stamp": JUDGE_STAMP}))
@@ -107,7 +110,11 @@ def test_report_with_the_claude_target_and_the_judge_traces(tmp_path):
     assert "one small quantized local model, and two hosted model IDs at one point in time." in text
     assert "**Second-opinion judge.** `claude-sonnet-5-5` read classified attack cases of `qwen3-4b`" in text
     assert f"- `qwen3-4b` verdicts: command `{JUDGE_STAMP['command']}`, seed 0, commit `{JUDGE_STAMP['commit']}`." in text
-    assert "| `qwen3-4b` | 108 | 108 | 108 | 0 | 0 |" in text and "{{" not in text
+    assert "| `qwen3-4b` | 108 | 108 | 106 | 2 | 0 |" in text and "{{" not in text
+    assert ("Every refused verdict had stop category `cyber` and came from injected goal `injection_task_5`; refused "
+            "verdicts are left out of the agreement") in text
+    assert ("- `qwen3-4b` refused verdicts: stop category `cyber` 2; by injected goal, refused of judged: `injection_task_5` "
+            "2 of 18.") in text
     (root / "docs" / "REPORT.md").write_text(text)
     result = check_files([root / "docs" / "REPORT.md"], root / "results")[str(root / "docs" / "REPORT.md")]
     assert result.ok, result.untraceable

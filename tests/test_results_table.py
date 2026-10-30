@@ -71,14 +71,17 @@ def test_claude_sampling_run_facts_and_judge_section():
     row = {"model": "m", "classified": 30, "judged": 20, "parsed": 18, "refused": 1, "unparsed": 1, "judge_yes_rule_yes": 2,
            "judge_yes_rule_no": 1, "judge_no_rule_yes": 2, "judge_no_rule_no": 13, "cohens_kappa": 0.4, "judge_models": ["j"],
            "agreement": {"point": 0.833, "lower": 0.7, "upper": 0.95, "method": "bootstrap-task-cluster-200"},
+           "refusal_categories": {"cyber": 1}, "refused_by_goal": {"injection_task_4": {"refused": 1, "judged": 5}},
            "stamp": {"command": "python -m aib.judge --store results/raw/m.jsonl", "seed": 0, "commit": "f" * 40}}
     text = "\n".join(R.judge_lines([row, dict(row, model="n", cohens_kappa=None, stamp=None)]))
     assert "## Second-opinion judge" in text and "Judge: j." in text
     assert "| m | 30 | 20 | 18 | 1 | 1 | 2 | 1 | 2 | 13 | 0.833 [0.700, 0.950] | 0.400 |" in text
     assert "| n | 30 | 20 | 18 | 1 | 1 | 2 | 1 | 2 | 13 | 0.833 [0.700, 0.950] | undefined (both always gave the same answer) |" in text
     assert f"- Verdicts for m: command `python -m aib.judge --store results/raw/m.jsonl`, seed 0, commit `{'f' * 40}`." in text
+    assert "- Refused verdicts for m: stop category cyber 1; by injected goal, refused of judged: injection_task_4 1 of 5." in text
     assert "Verdicts for n" not in text and R.judge_lines([]) == []
-    assert not text.endswith("\n") and R.judge_lines([dict(row, stamp=None)])[-1].startswith("| m |")
+    assert not text.endswith("\n") and R.judge_lines([dict(row, stamp=None, refused=0)])[-1].startswith("| m |")
+    assert R.refusal_text(row, "`") == "stop category `cyber` 1; by injected goal, refused of judged: `injection_task_4` 1 of 5"
 
 
 def test_claude_takes_the_fourth_palette_slot():

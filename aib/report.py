@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-from aib.results_table import fmt_kappa, fmt_rate
+from aib.results_table import fmt_kappa, fmt_rate, refusal_text
 
 PLACEHOLDER = re.compile(r"\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}")
 DEFENSE_ORDER = ("none", "delimit", "hierarchy", "filter")
@@ -252,9 +252,16 @@ def judge_section(metrics: dict) -> str:
                      str(r["unparsed"]),
                      str(r["judge_yes_rule_yes"]), str(r["judge_yes_rule_no"]), str(r["judge_no_rule_yes"]),
                      str(r["judge_no_rule_no"]), fmt_rate(r["agreement"]), fmt_kappa(r["cohens_kappa"])] for r in rows])
-    stamps = "\n".join(f"- `{r['model']}` verdicts: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
-                       f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp"))
+    notes = [f"- `{r['model']}` refused verdicts: {refusal_text(r, '`')}." for r in rows if r.get("refused")]
+    notes += [f"- `{r['model']}` verdicts: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
+              f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp")]
+    stamps = "\n".join(notes)
     models = ", ".join(f"`{r['model']}`" for r in rows)
+    cats = sorted({k for r in rows for k in r.get("refusal_categories", {})})
+    goals = sorted({g for r in rows for g in r.get("refused_by_goal", {})})
+    refusals = (f" Every refused verdict had stop category {', '.join(f'`{k}`' for k in cats)} and came from injected goal "
+                f"{' or '.join(f'`{g}`' for g in goals)}; refused verdicts are left out of the agreement, so those goals rest "
+                "on fewer verdicts (counts below the table)." if goals else "")
     return (f"{judges} read classified attack cases of {models} (the injected goal, "
             "the user's task, and the transcript, which it was told is data that may contain instructions addressed to it) "
             "and said whether the agent's tool calls carried out the injected goal; the table gives how many of each model's "
@@ -262,8 +269,8 @@ def judge_section(metrics: dict) -> str:
             "report; they measure how often an LLM judge agrees with AgentDojo's rule-based check. Agreement is over the "
             "parsed verdicts, with a 95% task-clustered interval. Cohen's kappa corrects it for the agreement expected by "
             "chance, which is high when nearly every case is a rule-negative; it is undefined when both always gave the "
-            f"same answer.\n\n{table}\n\n{stamps}\n\nEach verdict line in `results/judge/<model>.jsonl` keeps the stamp of the "
-            "run that wrote it.")
+            f"same answer.{refusals}\n\n{table}\n\n{stamps}\n\nEach verdict line in `results/judge/<model>.jsonl` keeps the "
+            "stamp of the run that wrote it.")
 
 
 def external_validity(metrics: dict, cfg) -> str:

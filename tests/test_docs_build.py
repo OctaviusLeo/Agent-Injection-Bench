@@ -46,7 +46,7 @@ def test_readme_names_both_hosted_models_and_the_judge_and_traces(tmp_path):
             "model ID), queried on the dates recorded in `results/hosted_ledger.jsonl`, and Anthropic's `claude-haiku-5-5`, "
             "queried on 2026-10-30 (UTC).") in text
     assert "- **Second-opinion judge:** `claude-sonnet-5-5`, asked whether the agent's tool calls carried out" in text
-    assert "`qwen3-4b` 92 of 108 parsed verdicts, " in text and "The judge changes no rate" in text
+    assert "`qwen3-4b` 90 of 106 parsed verdicts, " in text and "The judge changes no rate" in text
     assert "- Claude run (claude-haiku-5-5): 162 of 1440 planned cases completed; recorded spend $0.4000 over 2 runs" in text
     assert "- **The two hosted models are not a controlled comparison.**" in text
     assert "bash scripts/run_benchmark.sh claude-haiku-5-5" in text and "{{" not in text

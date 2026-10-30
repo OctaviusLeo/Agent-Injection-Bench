@@ -23,7 +23,7 @@ import hashlib
 import json
 import math
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -388,7 +388,12 @@ def judge_rows(judge_dir: Path, stores: dict, seed: int, resamples: int = 2000) 
                                       cell_seed(seed, f"{path.stem}|judge|agreement"), resamples)
         summary = path.with_name(f"{path.stem}_agreement.json")
         classified = sum(r["status"] == "classified" and r.get("injection_success") is not None for r in records.values())
+        refused = [v for v in verdicts if v["outcome"] == "refused"]
+        goals = sorted({v["injection_task_id"] for v in refused})
         rows.append({"model": path.stem, "classified": classified, **agreement(verdicts), "agreement": as_dict(rate),
+                     "refusal_categories": dict(sorted(Counter(str(v.get("stop_category")) for v in refused).items())),
+                     "refused_by_goal": {g: {"refused": sum(v["injection_task_id"] == g for v in refused),
+                                             "judged": sum(v["injection_task_id"] == g for v in verdicts)} for g in goals},
                      "judge_models": sorted({v["judge_model"] for v in verdicts if v.get("judge_model")}),
                      "stamp": json.loads(summary.read_text(encoding="utf-8")).get("stamp") if summary.exists() else None})
     return rows

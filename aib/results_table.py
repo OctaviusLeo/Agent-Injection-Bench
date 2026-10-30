@@ -172,9 +172,17 @@ def judge_lines(rows: list[dict]) -> list[str]:
         lines.append(f"| {r['model']} | {r['classified']} | {r['judged']} | {r['parsed']} | {r['refused']} | {r['unparsed']} | "
                      f"{r['judge_yes_rule_yes']} | {r['judge_yes_rule_no']} | {r['judge_no_rule_yes']} | "
                      f"{r['judge_no_rule_no']} | {fmt_rate(r['agreement'])} | {fmt_kappa(r['cohens_kappa'])} |")
-    stamps = [f"- Verdicts for {r['model']}: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
+    notes = [f"- Refused verdicts for {r['model']}: {refusal_text(r)}." for r in rows if r.get("refused")]
+    notes += [f"- Verdicts for {r['model']}: command `{r['stamp']['command']}`, seed {r['stamp']['seed']}, commit "
               f"`{r['stamp']['commit']}`." for r in rows if r.get("stamp")]
-    return lines + ([""] + stamps if stamps else [])
+    return lines + ([""] + notes if notes else [])
+
+
+def refusal_text(row: dict, tick: str = "") -> str:
+    """A judge row's refusals by stop category and by injected goal (refused of judged), for the table and the Report."""
+    cats = ", ".join(f"{tick}{k}{tick} {n}" for k, n in row.get("refusal_categories", {}).items())
+    goals = ", ".join(f"{tick}{g}{tick} {c['refused']} of {c['judged']}" for g, c in row.get("refused_by_goal", {}).items())
+    return f"stop category {cats}; by injected goal, refused of judged: {goals}"
 
 
 def main(argv: list[str] | None = None) -> int:
