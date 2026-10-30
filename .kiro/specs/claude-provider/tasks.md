@@ -27,3 +27,18 @@ Each task commits as `task C<id>: <summary>` after its check passes. The gate is
   - Any failed Claude request, including a response the SDK cannot validate, frees its reservation and leaves a `failed` ledger line.
   - The fake client rejects parameters the installed SDK's `Messages.create` does not take; the Claude check records the thinking blocks of each turn; recorded run spend is rounded to 9 decimals.
   - Re-run the live check on the fixed code. At `effort: medium` no turn returned a thinking block, so thinking replay is covered by the unit tests here and will be exercised at scale by the full benchmark run.
+- [x] C9 Spec for the full runs and the reports
+  - This list and design.md, Reporting. The requirements are unchanged (design.md, Reporting, says why).
+- [ ] C10 Metrics, Results_Table, and plot colour (design.md, Reporting)
+  - `run_facts.claude` from `results/claude_run.json` and the Claude_Ledger; the `judge` rows with task-clustered intervals; the sampling column for a record that sent no sampling settings.
+  - `claude-haiku-5-5` takes categorical slot 4 of the palette in `aib/plots.py`.
+  - Unit tests for each, including a missing summary, a missing ledger, and a judge file with refused and unparsed verdicts.
+- [ ] C11 Report and README (design.md, Reporting)
+  - The generated sampling paragraph and the comparability limitation, the hosted scope for both hosted runs, the judge table with its stamps, the README's hosted-model sentence, judge headline, and commands.
+  - Unit tests on a fixture tree that holds a Claude store, `results/claude_run.json`, a Claude ledger, and a judge file, including the traceability check of the rendered Report and README.
+- [ ] C12 Full Claude benchmark and judge runs (Req C1.6, C1.7, C2, C3)
+  - One capped chunk first: `bash scripts/run_benchmark.sh claude-haiku-5-5`, then the measured cost per case, a projection for the rest of the grid and for the judge, and the owner's approval before any further spend.
+  - The benchmark runs on commit `a8c5ffa`, before C9-C11 are committed, because a store resumes only on the commit that started it; rerun it until 1,440 of 1,440 cases are in the store. Commit the Claude store, the Claude_Ledger, and `results/claude_run.json`.
+  - With the approval: `python -m aib.judge --store results/raw/<model>.jsonl` for each approved store until every classified case is judged, each run under the Run_Cap and started after the last one ends. Commit the judge files.
+- [ ] C13 Regenerate and gate
+  - `bash scripts/build_results.sh` passes, traceability check included; `bash scripts/test_unit.sh` and `uvx ruff@0.17.3 check .` pass; commit the regenerated files.
