@@ -5,7 +5,7 @@
 
 A reproducible benchmark that measures how often tool-using LLM agents follow instructions planted in tool outputs (indirect prompt injection), and how much each defense lowers that rate without hurting legitimate task success. Every tool is simulated: nothing reaches a real account, website, or system.
 
-It runs 40 user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under 5 injection styles and a clean control, with 4 defenses, on 4 models: two open-weight Qwen models served locally by llama.cpp, and two hosted models, each run on 2 of the styles to stay within its spend cap: OpenAI's `gpt-6-luna` (API model ID), queried on 2026-10-18 (UTC), and Anthropic's `claude-haiku-5-5`, queried on 2026-10-30 (UTC). That is 8640 scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
+It runs 40 user tasks from AgentDojo's workspace suite (an email, calendar, and file-drive assistant) under 5 injection styles and a clean control, with 4 defenses, on 4 models: two open-weight Qwen models served locally by llama.cpp, and two hosted models: OpenAI's `gpt-6-luna` (API model ID), queried on 2026-10-18 (UTC) on 2 of the styles to stay within its spend cap, and Anthropic's `claude-haiku-5-5`, queried on 2026-10-30 (UTC) on the same styles, so that the two hosted models share a grid. That is 8640 scored cases. The repository holds the harness that plants the injections and runs the agents, the defenses, the task-clustered bootstrap statistics, and the generators that write every table, plot, and document from the raw case records committed under `results/raw/`.
 
 ## Results
 
@@ -15,7 +15,7 @@ Rates come with 95% task-clustered bootstrap intervals, except that a rate with 
 - **Floor effect:** undefended attack success was at most 0.030 [0.009, 0.055] (`qwen3-4b`, pooled over its styles), so no defense could lower it by more than that; the style with the most successful attacks, per model: `qwen3-4b` 12 of 14 under `important_instructions` (0.124 [0.031, 0.240]), `qwen2.5-7b` 6 of 9 under `important_instructions` (0.083 [0.013, 0.188]), `gpt-6-luna` 1 of 1 under `direct` (0.009 [0.000, 0.026]).
 - **DeBERTa filter:** it lowered task success by 0.265 [0.163, 0.370] (`qwen2.5-7b`) to 0.562 [0.446, 0.671] (`gpt-6-luna`); its largest drop in attack success was 0.023 [0.005, 0.046] (`qwen3-4b`). It is expensive because it flagged 0.334 [0.242, 0.426] (`qwen2.5-7b`) to 0.428 [0.321, 0.541] (`claude-haiku-5-5`) of benign tool outputs in runs without an attack, and a flagged output is replaced by an omission notice.
 - **Delimiter and hierarchy prompts:** the paired interval for the change in task success includes zero in 8 of 8 model-defense pairs, and for the change in attack success in 7 of 8; the exceptions: `qwen2.5-7b` under `delimit`, attack-success reduction -0.017 [-0.037, -0.001] (attack success rose).
-- **Second-opinion judge:** `claude-sonnet-5-5`, asked whether the agent's tool calls carried out the injected goal, agreed with AgentDojo's rule-based check on `claude-haiku-5-5` 900 of 900 parsed verdicts, 1.000 [1.000, 1.000], Cohen's kappa undefined (both always gave the same answer), `gpt-6-luna` 873 of 873 parsed verdicts, 1.000 [1.000, 1.000], Cohen's kappa 1.000, `qwen3-4b` 1828 of 1830 parsed verdicts, 0.999 [0.997, 1.000], Cohen's kappa 0.978. The judge changes no rate; its confusion counts are in the Report.
+- **Second-opinion judge:** `claude-sonnet-5-5`, asked whether the agent's tool calls carried out the injected goal, agreed with AgentDojo's rule-based check on `claude-haiku-5-5` 900 of 900 parsed verdicts (58 refused), 1.000 [1.000, 1.000], Cohen's kappa undefined (both always gave the same answer), `gpt-6-luna` 873 of 873 parsed verdicts (62 refused), 1.000 [1.000, 1.000], Cohen's kappa 1.000, `qwen3-4b` 1828 of 1830 parsed verdicts (102 refused), 0.999 [0.997, 1.000], Cohen's kappa 0.978. The judge changes no rate; its confusion counts, refusals, and stamps are in the Report.
 
 ![Task-success cost of each defense](results/plots/defense_cost.png)
 
@@ -23,7 +23,7 @@ Rates come with 95% task-clustered bootstrap intervals, except that a rate with 
 
 - User tasks: 40; conditions: 6 (clean plus 5 injection styles); defenses: 4; injected goals: 6; models: 4; case records: 8640.
 - Repetitions per model, defense and condition: 3; temperature 0.7; top-p 0.9; loop cap 15 model calls; output cap 1024 tokens per call; base seed 20261017; the temperature, top-p, and output cap apply to every model but claude-haiku-5-5.
-- Hosted run: 1440 of 1440 planned cases completed; spend $0.5474 of the $3.00 spend cap; stopped at the cap: no.
+- OpenAI hosted run: 1440 of 1440 planned cases completed; spend $0.5474 of the $3.00 spend cap; stopped at the cap: no.
 - Claude run (claude-haiku-5-5): 1440 of 1440 planned cases completed; recorded spend $1.6025 in 1 run, under the $5.00 per-run cap; the last run stopped at its cap: no. No sampling settings or seed were sent (the model's default sampling); adaptive thinking at effort medium; output cap 16000 tokens per call, thinking included.
 
 **Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes):
@@ -106,7 +106,7 @@ bash scripts/build_results.sh
 - Full local-model benchmark (every enabled local model, one after the other): `bash scripts/run_all_local.sh`
 - One model's benchmark (resumable; reproduces that model's store): `bash scripts/run_benchmark.sh <model key>`
 - The same run under a watchdog that resumes it with a different launch method (setsid, systemd, tmux, child process) after a crash, a vanished job, a stall, or a slowdown: `uv run --frozen python -m aib.watchdog --model <model key>`
-- The hosted model needs `OPENAI_API_KEY` (read from `~/.config/aib/secrets.env` by `scripts/wsl_run.sh`) and stops before its Spend_Cap.
+- The OpenAI hosted model needs `OPENAI_API_KEY` (read from `~/.config/aib/secrets.env` by `scripts/wsl_run.sh`) and stops before its Spend_Cap.
 - The Claude target (`claude-haiku-5-5`) and the second-opinion judge (`claude-sonnet-5-5`) are billed to the Anthropic API key in the Windows user variable that `config/models.yaml` names, forwarded into WSL with `WSLENV` (see `docs/ENVIRONMENT.md`). Every Claude command stops before the per-run cap in `config/claude.yaml`. The judge gives a second opinion on each attack case and reports how often it agrees with AgentDojo's rule-based check; it never changes a reported rate.
 - Regenerate the metrics, the Results_Table, the plots, the Report, and this README, then run the traceability check: `bash scripts/build_results.sh`
 
@@ -138,8 +138,8 @@ GitHub Actions runs the first two on every push and on pull requests to `main`.
 - **One environment.** All 40 user tasks come from AgentDojo's workspace suite, so the results describe an email, calendar, and file-drive assistant, not agents in general.
 - **Small local models.** Their task success can be low even without attacks, which widens intervals and limits what the defense-cost comparison can resolve.
 - **One model family locally.** Both local models are Qwen-family: Llama-3.1-8B was replaced before the benchmark because llama.cpp could not parse the turns in which it called two tools (the model checks are recorded in `.kiro/specs/agent-injection-bench/design.md`), so the local comparison is across size and generation, not family.
-- **The hosted grid is smaller:** it covers 3 of the 6 conditions because of the spend cap. `gpt-6-luna` is OpenAI's API model ID, an alias the provider can repoint; the response `model` field recorded on every case echoed the alias, so no dated snapshot was recorded.
-- **The two hosted models are not a controlled comparison.** `claude-haiku-5-5` sent no sampling settings and no seed, so it used the model's default sampling, and it thought adaptively at effort `medium`; `gpt-6-luna` ran at temperature 0.7 and top-p 0.9 with a per-request seed and reasoning effort `none`. A difference between the two mixes the model with its decoding settings. The response `model` field on `claude-haiku-5-5`'s cases echoed the requested ID, so no dated snapshot was recorded.
+- **The hosted grid is smaller:** it covers 3 of the 6 conditions because of `gpt-6-luna`'s spend cap. `gpt-6-luna` is OpenAI's API model ID, an alias the provider can repoint; the response `model` field recorded on every case echoed the alias, so no dated snapshot was recorded.
+- **The two hosted models are not a controlled comparison.** `claude-haiku-5-5` ran the same grid as `gpt-6-luna` but sent no sampling settings and no seed, so it used the model's default sampling, and it thought adaptively at effort `medium`; `gpt-6-luna` ran at temperature 0.7 and top-p 0.9 with a per-request seed and reasoning effort `none`. A difference between the two mixes the model with its decoding settings. The response `model` field on `claude-haiku-5-5`'s cases echoed the requested ID, so no dated snapshot was recorded.
 - **Floor effect.** Undefended attack success was at most 0.030 pooled over a model's styles, so no defense could lower it by more than that; the ASR-reduction intervals are narrow mainly because there was little to reduce.
 - **Different decoding stacks.** The local models are 4-bit GGUF quantizations served by llama.cpp; quantization and the server's chat template can change behavior relative to the original weights.
 - **Exposure-conditioned ASR.** Cases where the agent never read the injected data are excluded from the ASR denominator; exposure rates are reported beside every ASR.
@@ -165,9 +165,9 @@ Code is released under the [MIT License](LICENSE). Third-party packages, models 
 
 This README is generated by `python -m aib.docs_build` from `docs/README.template.md` and the files under `results/`; do not edit it by hand.
 
-- README: command `python -m aib.docs_build --template docs/README.template.md --out README.md`, seed 20261017, commit `1741163e0b4a25d052363a92846b5c455b2fddf1`.
-- Results_Table: command `python -m aib.results_table --metrics results/metrics.json --out results/summary.md`, seed 20261017, commit `1741163e0b4a25d052363a92846b5c455b2fddf1`.
-- Metrics: command `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, seed 20261017, commit `1741163e0b4a25d052363a92846b5c455b2fddf1`.
+- README: command `python -m aib.docs_build --template docs/README.template.md --out README.md`, seed 20261017, commit `ff2d6fb16d9ea518163fe1de361b3c20adafacce`.
+- Results_Table: command `python -m aib.results_table --metrics results/metrics.json --out results/summary.md`, seed 20261017, commit `ff2d6fb16d9ea518163fe1de361b3c20adafacce`.
+- Metrics: command `python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json`, seed 20261017, commit `ff2d6fb16d9ea518163fe1de361b3c20adafacce`.
 
 ## How this was built
 
