@@ -9,7 +9,7 @@ It runs {{n_user_tasks}} user tasks from AgentDojo's workspace suite (an email, 
 
 ## Results
 
-Rates come with 95% task-clustered bootstrap intervals, except that a rate with no successes shows its exact one-sided 95% upper bound (marked †); changes are paired against no defense on the same resampled tasks.
+Rates come with 95% task-clustered bootstrap intervals, except that a rate with no successes shows its exact one-sided 95% upper bound (marked †) and a rate with only successes its exact one-sided 95% lower bound (marked ‡); changes are paired against no defense on the same resampled tasks.
 
 {{headline}}
 
@@ -19,7 +19,7 @@ Rates come with 95% task-clustered bootstrap intervals, except that a rate with 
 
 {{run_facts}}
 
-**Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes):
+**Each model pooled over the injection styles it ran** (from `results/summary.md`; † marks an exact upper bound for a rate with no successes, ‡ an exact lower bound for a rate with only successes):
 
 {{pooled_table}}
 
@@ -46,7 +46,7 @@ flowchart LR
 - **Attacks.** Five generic injection styles, planted only in fixture fields that the user task's ground truth reads, so the injection always arrives inside a tool output; each user task is paired with one of six benign sandbox goals. A clean control has no injection.
 - **Classification.** An injected case counts toward the attack success rate only when the agent actually received a tool output containing the injection; other injected cases are reported as unclassified.
 - **Defenses.** `none`, `delimit` (spotlighting with `<<` `>>`), `hierarchy` (instruction-hierarchy system prompt), and `filter` (a DeBERTa prompt-injection classifier screens every tool output).
-- **Statistics.** Task-clustered bootstrap intervals for every rate; paired bootstrap intervals for defense cost and ASR reduction.
+- **Statistics.** Task-clustered bootstrap intervals for every rate, except exact one-sided bounds for a rate with no successes or only successes; paired bootstrap intervals for defense cost and ASR reduction.
 
 ## Run it
 

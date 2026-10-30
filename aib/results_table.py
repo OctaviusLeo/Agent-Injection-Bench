@@ -1,7 +1,8 @@
 """Results_Table: results/summary.md generated from results/metrics.json (task 5.3; Req 6, 7.2).
 
 Every rate is shown with its 95% interval; a rate with no successes shows its exact one-sided upper
-bound, marked with a dagger; a Cell whose rate cannot be computed shows "not computed" and the cause.
+bound, marked with a dagger, and a rate with only successes its exact one-sided lower bound, marked with a
+double dagger; a Cell whose rate cannot be computed shows "not computed" and the cause.
 The file is regenerated, never edited by hand.
 
 Usage: python -m aib.results_table [--metrics results/metrics.json] [--out results/summary.md]
@@ -17,6 +18,9 @@ DEFENSE_ORDER = ("none", "delimit", "hierarchy", "filter")
 ZERO_COUNT_MARK = "†"
 ZERO_COUNT_NOTE = (f"{ZERO_COUNT_MARK} No successes: the interval is the exact one-sided 95% upper bound (Clopper-Pearson, "
                    "cases treated as independent) instead of the bootstrap interval, which collapses to a point at zero.")
+ALL_SUCCESS_MARK = "‡"
+ALL_SUCCESS_NOTE = (f"{ALL_SUCCESS_MARK} Only successes: the interval is the exact one-sided 95% lower bound (Clopper-Pearson, "
+                    "cases treated as independent) instead of the bootstrap interval, which collapses to a point at one.")
 
 
 def fmt_rate(entry: dict | None) -> str:
@@ -24,7 +28,8 @@ def fmt_rate(entry: dict | None) -> str:
         return "-"
     if entry.get("not_computed"):
         return f"not computed ({entry['cause']})"
-    mark = ZERO_COUNT_MARK if entry.get("method", "").startswith("exact-upper") else ""
+    method = entry.get("method", "")
+    mark = ZERO_COUNT_MARK if method.startswith("exact-upper") else ALL_SUCCESS_MARK if method.startswith("exact-lower") else ""
     return f"{entry['point']:.3f} [{entry['lower']:.3f}, {entry['upper']:.3f}]{mark}"
 
 
@@ -75,7 +80,8 @@ def run_fact_lines(f: dict) -> list[str]:
 def diagnostics_lines(d: dict | None) -> list[str]:
     if not d:
         return []
-    return [f"- Bootstrap diagnostics: {d['rates_zero_count']} of {d['rates']} rates had no successes; the percentile "
+    return [f"- Bootstrap diagnostics: {d['rates_zero_count']} of {d['rates']} rates had no successes and "
+            f"{d['rates_all_success']} had only successes; the percentile "
             f"interval had to be clamped to contain the point for {d['rates_clamped']} rates and {d['differences_clamped']} "
             f"of {d['differences']} paired differences; paired resamples dropped for an empty side: "
             f"{d['dropped_resamples']} in total, at most {d['max_dropped_resamples']} in one difference."]
@@ -99,6 +105,7 @@ def render_summary(metrics: dict, stamp: dict) -> str:
         f"- Intervals: 95% {st.get('interval_method')} for rates; {st.get('difference_method')} for defense cost and ASR "
         "reduction (paired on the same resampled tasks).",
         f"- {ZERO_COUNT_NOTE}",
+        f"- {ALL_SUCCESS_NOTE}",
         *diagnostics_lines(metrics.get("diagnostics")),
         "- ASR = carried-out / classified injected cases (unclassified and errored excluded). TSR = task successes / "
         "non-errored cases. Defense cost = TSR(none) - TSR(defense), same model and condition.",

@@ -8,9 +8,10 @@ reduction) use a paired version: each resample draws one set of tasks and evalua
 on it. Generators are seeded from the base seed and a stable hash of the Cell key, so results do
 not depend on the order Cells are computed in. `wilson_interval` is used where cases are independent.
 
-A percentile bootstrap of a rate with no successes is the single point 0, so a zero-success rate instead
-reports the exact one-sided 95% Clopper-Pearson upper bound, 1 - 0.05^(1/n), which treats the n cases as
-independent. Each interval records whether `_bracket` had to clamp it, and each paired difference how
+A percentile bootstrap of a rate with no successes is the single point 0, and of a rate with only successes
+the single point 1, so a zero-success rate instead reports the exact one-sided 95% Clopper-Pearson upper bound,
+1 - 0.05^(1/n), and an all-success rate the lower bound, 0.05^(1/n); both treat the n cases as independent
+(Req 6.9, 6.10). Each interval records whether `_bracket` had to clamp it, and each paired difference how
 many resamples it dropped; `compute_metrics` totals both under "diagnostics".
 
 Usage: python -m aib.metrics --store results/raw --seed 20261017 --resamples 2000 --out results/metrics.json
@@ -109,15 +110,23 @@ def zero_count_upper(n: int, confidence: float = CONFIDENCE) -> float:
     return 1.0 - (1.0 - confidence) ** (1.0 / n)
 
 
+def all_success_lower(n: int, confidence: float = CONFIDENCE) -> float:
+    """Exact one-sided Clopper-Pearson lower bound for n successes in n independent cases."""
+    return (1.0 - confidence) ** (1.0 / n)
+
+
 def cluster_bootstrap_rate(by_task: dict[str, tuple[int, int]], seed: int, resamples: int = 2000) -> RateCI | NotComputed:
-    """Pooled rate over tasks with a task-clustered percentile bootstrap interval. `by_task` maps a task
-    to (successes, eligible cases)."""
+    """Pooled rate over tasks with a task-clustered percentile bootstrap interval, or the exact one-sided bound when
+    there are no successes or only successes. `by_task` maps a task to (successes, eligible cases)."""
     tasks = sorted(t for t, (_, n) in by_task.items() if n > 0)
     if not tasks:
         return NotComputed("empty denominator")
     s, n = _arrays(by_task, tasks)
     if s.sum() == 0:
         return RateCI(0.0, 0.0, zero_count_upper(int(n.sum())), "exact-upper-95-zero-count", int(n.sum()), successes=0)
+    if s.sum() == n.sum():
+        return RateCI(1.0, all_success_lower(int(n.sum())), 1.0, "exact-lower-95-all-success", int(n.sum()),
+                      successes=int(n.sum()))
     point = float(s.sum() / n.sum())
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, len(tasks), size=(resamples, len(tasks)))
@@ -408,6 +417,7 @@ def diagnostics(sections) -> dict:
     diffs = [e for e in entries if e["method"].startswith("paired")]
     return {"rates": len(rates), "rates_clamped": sum(e["clamped"] for e in rates),
             "rates_zero_count": sum(e["method"].startswith("exact-upper") for e in rates),
+            "rates_all_success": sum(e["method"].startswith("exact-lower") for e in rates),
             "differences": len(diffs), "differences_clamped": sum(e["clamped"] for e in diffs),
             "dropped_resamples": sum(e["dropped_resamples"] for e in diffs),
             "max_dropped_resamples": max((e["dropped_resamples"] for e in diffs), default=0)}

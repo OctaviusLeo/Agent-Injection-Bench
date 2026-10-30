@@ -106,6 +106,23 @@ def test_zero_success_cell_reports_the_exact_one_sided_upper_bound():
     assert some.method == "bootstrap-task-cluster-300" and some.successes == 1
 
 
+def test_all_success_cell_reports_the_exact_one_sided_lower_bound():
+    out = M.cluster_bootstrap_rate({"a": (40, 40), "b": (77, 77)}, seed=1, resamples=300)
+    assert (out.point, out.upper, out.successes) == (1.0, 1.0, 117)
+    assert out.lower == pytest.approx(0.05 ** (1 / 117)) and out.lower == pytest.approx(1 - M.zero_count_upper(117))
+    assert out.lower == pytest.approx(0.97472, abs=1e-5) and M.all_success_lower(900) == pytest.approx(0.99668, abs=1e-5)
+    assert out.method == "exact-lower-95-all-success" and out.n == 117 and not out.clamped
+    some = M.cluster_bootstrap_rate({"a": (40, 40), "b": (76, 77)}, seed=1, resamples=300)
+    assert some.method == "bootstrap-task-cluster-300" and some.successes == 116 and some.lower < some.upper
+
+
+def test_diagnostics_count_zero_success_and_all_success_rates():
+    rates = [M.cluster_bootstrap_rate(c, seed=1, resamples=100).to_dict()
+             for c in ({"a": (0, 5)}, {"a": (5, 5)}, {"a": (5, 5), "b": (3, 3)}, {"a": (2, 5), "b": (1, 3)})]
+    diag = M.diagnostics([[{"rate": r} for r in rates]])
+    assert (diag["rates"], diag["rates_zero_count"], diag["rates_all_success"]) == (4, 1, 2)
+
+
 def test_paired_bootstrap_is_paired():
     rng = __import__("numpy").random.default_rng(0)
     rates = rng.uniform(0.05, 0.95, size=30)

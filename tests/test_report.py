@@ -89,6 +89,8 @@ def test_report_renders_all_sections_and_traces(tmp_path):
     assert "![Attack success rate by defense](../results/plots/asr_by_defense.png)" in text
     assert "{{" not in text and "54 of 1440 planned cases" in text and "$0.4213 of the $3.00 cap" in text
     assert "flagged 36 of 84 outputs" in text and "`qwen3-4b`" in text
+    assert ("the upper bound when there are no successes, marked † in the tables, and the lower bound when every case "
+            "succeeded, marked ‡.") in text and "- **Zero-success and all-success intervals.**" in text
     (root / "docs" / "REPORT.md").write_text(text)
     result = check_files([root / "docs" / "REPORT.md"], root / "results")[str(root / "docs" / "REPORT.md")]
     assert result.ok, result.untraceable
@@ -116,6 +118,7 @@ def test_report_with_the_claude_target_and_the_judge_traces(tmp_path):
             "JSON.") in text
     assert f"- `qwen3-4b` verdicts: command `{JUDGE_STAMP['command']}`, seed 0, commit `{JUDGE_STAMP['commit']}`." in text
     assert "| `qwen3-4b` | 108 | 108 | 106 | 2 | 0 |" in text and "{{" not in text
+    assert "or the exact one-sided lower bound (marked ‡) when every parsed verdict agreed." in text
     assert ("Every refused verdict had stop category `cyber` and came from injected goal `injection_task_5`; refused "
             "verdicts are left out of the agreement") in text
     assert ("- `qwen3-4b` refused verdicts: stop category `cyber` 2; by injected goal, refused of judged: `injection_task_5` "

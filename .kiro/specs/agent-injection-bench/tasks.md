@@ -419,10 +419,10 @@ A rate whose every eligible case succeeded printed a zero-width bootstrap interv
   - Requirement 6.9 (the zero-success rule the metrics layer has applied since commit `e8e3515`), 6.10 (its all-success mirror), and the glossary's Confidence_Interval; design.md's "Statistics" section, interfaces, generated outputs, testing strategy, and known limitations; this list.
   - _Requirements: 6.9, 6.10_
 
-- [ ] 7.2 Implement the all-success lower bound
+- [x] 7.2 Implement the all-success lower bound
   - `aib/metrics.py`: `all_success_lower(n)`; `cluster_bootstrap_rate` reports an all-success rate as [0.05^(1/n), 1] with method `exact-lower-95-all-success`; the diagnostics count such rates as `rates_all_success`.
   - `aib/results_table.py`: the ‡ mark and its own note beside the † note; the diagnostics line counts the all-success rates.
-  - `aib/report.py`, `docs/report_template.md`, and `docs/README.template.md`: the statistics paragraph, the limitation, and the README's interval sentence and pooled-table caption name both marks.
+  - `aib/report.py`, `docs/report_template.md`, and `docs/README.template.md`: the statistics paragraph, the limitation, and the README's interval sentence and pooled-table caption name both marks; the Report's judge paragraph and the README's statistics bullet name the exact bounds, and the claude-provider design's Reporting section notes the all-agree case.
   - Unit tests: an all-success rate over 117 cases is [0.05^(1/117), 1] with that method, the mirror of the zero-success bound; one failure keeps the bootstrap; ‡ and its note appear in the Results_Table; the diagnostics count the all-success rates; the Report and the README name ‡.
   - _Requirements: 6.2, 6.9, 6.10_
 

@@ -9,6 +9,7 @@ import pytest
 
 from aib import config as CFG
 from aib import docs_build as DB
+from aib import metrics as M
 from aib.report import render
 from aib.repro import REPO_ROOT
 from aib.traceability import check_files
@@ -31,6 +32,9 @@ def test_readme_renders_every_required_section_and_traces(tmp_path):
     assert "`bash scripts/run_all_local.sh`" in text and "`bash scripts/build_results.sh`" in text
     assert "All tools are simulated" in text and "Responsible disclosure" in text
     assert "| `none` |" not in text and "| qwen3-4b | none |" in text  # the pooled table copied from summary.md
+    assert "(marked †) and a rate with only successes its exact one-sided 95% lower bound (marked ‡)" in text
+    assert "‡ an exact lower bound for a rate with only successes" in text
+    assert "except exact one-sided bounds for a rate with no successes or only successes;" in text
     assert "- **DeBERTa filter:**" in text and "queried on the dates recorded in" in text  # headline and hosted dates
     assert "{{" not in text
     (root / "README.md").write_text(text)
@@ -60,8 +64,8 @@ def test_readme_names_both_hosted_models_and_the_judge_and_traces(tmp_path):
     assert "`c`, queried on the dates recorded in `results/claude_ledger.jsonl` on 1 of the styles" in DB.hosted_models(
         root, cfg, {"claude": {"model": "c"}})
     partial = {"model": "m", "classified": 10, "judged": 2, "parsed": 2, "refused": 0, "judge_models": ["j"], "cohens_kappa": None,
-               "agreement": {"point": 1.0, "lower": 1.0, "upper": 1.0, "successes": 2, "n": 2}}
-    assert "`m` 2 of 2 parsed verdicts, 1.000 [1.000, 1.000], Cohen's kappa undefined (both always gave the same answer) (2 of 10 " \
+               "agreement": M.cluster_bootstrap_rate({"a": (2, 2)}, 1, 100).to_dict()}
+    assert "`m` 2 of 2 parsed verdicts, 1.000 [0.224, 1.000]‡, Cohen's kappa undefined (both always gave the same answer) (2 of 10 " \
            "classified cases judged)." in DB.headline({"judge": [partial]})
 
 

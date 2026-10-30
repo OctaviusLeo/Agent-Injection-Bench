@@ -127,3 +127,14 @@ def test_zero_count_rates_are_marked_and_shared_styles_get_their_own_table(tmp_p
     assert "## Pooled over the styles every model ran" in text and "Styles: direct." in text
     assert "- Bootstrap diagnostics:" in text
     assert R.diagnostics_lines(None) == []
+
+
+def test_all_success_rates_get_their_own_mark_and_note(tmp_path):
+    metrics = _fixture(tmp_path)
+    metrics["cells"][1]["exposure"] = M.cluster_bootstrap_rate({"a": (10, 10), "b": (20, 20)}, 1, 100).to_dict()
+    text = R.render_summary(metrics, STAMP)
+    assert "1.000 [0.905, 1.000]‡" in text and R.ALL_SUCCESS_NOTE in text and R.ZERO_COUNT_NOTE in text
+    assert R.ALL_SUCCESS_MARK != R.ZERO_COUNT_MARK
+    d = metrics["diagnostics"]
+    assert (f"{d['rates_zero_count']} of {d['rates']} rates had no successes and {d['rates_all_success']} had only "
+            "successes") in text

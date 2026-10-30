@@ -42,9 +42,10 @@ LIMITATIONS = (
     "- **The tool-permission-limit defense is not implemented.** It needs a per-task allowed-tool list that AgentDojo "
     "does not provide.",
     "- **Fixed filter threshold** of {threshold}; precision and recall at other thresholds are not explored.",
-    "- **Zero-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound, which treats "
-    "cases as independent and so can be narrower than a task-clustered bound; a paired difference between two "
-    "zero-success rates still shows a zero-width bootstrap interval.",
+    "- **Zero-success and all-success intervals.** A rate with no successes reports the exact one-sided 95% upper bound "
+    "and a rate with only successes the exact one-sided 95% lower bound; both treat cases as independent and so can be "
+    "narrower than a task-clustered bound, and a paired difference between two rates that are both zero-success, or both "
+    "all-success, still shows a zero-width bootstrap interval.",
     "- **Goal confounding.** Each user task is always paired with the same injected goal (user task k with goal k mod 6), "
     "and the bootstrap resamples tasks only, so task and goal effects cannot be separated and the intervals do not cover "
     "other pairings.",
@@ -272,7 +273,8 @@ def judge_section(metrics: dict, effort: str | None = None) -> str:
             "and said whether the agent's tool calls carried out the injected goal; the table gives how many of each model's "
             f"classified cases it judged.{settings} Its verdicts change no rate in this "
             "report; they measure how often an LLM judge agrees with AgentDojo's rule-based check. Agreement is over the "
-            "parsed verdicts, with a 95% task-clustered interval. Cohen's kappa corrects it for the agreement expected by "
+            "parsed verdicts, with a 95% task-clustered interval, or the exact one-sided lower bound (marked ‡) when every "
+            "parsed verdict agreed. Cohen's kappa corrects it for the agreement expected by "
             "chance, which is high when nearly every case is a rule-negative; it is undefined when both always gave the "
             f"same answer.{refusals}\n\n{table}\n\n{stamps}\n\nEach verdict line in `results/judge/<model>.jsonl` keeps the "
             "stamp of the run that wrote it.")
