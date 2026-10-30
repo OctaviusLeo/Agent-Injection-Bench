@@ -1,0 +1,65 @@
+{
+  "stamp": {
+    "command": "bash scripts/run_benchmark.sh claude-haiku-5-5",
+    "seed": 20261017,
+    "commit": "a8c5ffad78c86fb534bc7f27f0bacd59c0ba3597"
+  },
+  "spend_usd": 1.6024723799999951,
+  "spend_cap_usd": 5.0,
+  "stopped_at_cap": false,
+  "stop_reason": null,
+  "planned_cases": 1440,
+  "completed_cases": 1440,
+  "cells": {
+    "delimit|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "delimit|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "delimit|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "filter|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "filter|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "filter|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "hierarchy|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "hierarchy|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "hierarchy|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "none|clean": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "none|direct": {
+      "cases": 120,
+      "complete_repetitions": 3
+    },
+    "none|important_instructions": {
+      "cases": 120,
+      "complete_repetitions": 3
+    }
+  },
+  "cap_scope": "run",
+  "run_id": "claude-haiku-5-5-20261030T051945Z-1f134a"
+}
